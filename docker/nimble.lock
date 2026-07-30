@@ -1,0 +1,208 @@
+{
+  "version": 2,
+  "packages": {
+    "argparse": {
+      "version": "0.10.1",
+      "vcsRevision": "a39ad187bb795132df1150f1276f0d92d1c7d48b",
+      "url": "https://github.com/iffy/nim-argparse",
+      "downloadMethod": "git",
+      "dependencies": [],
+      "checksums": {
+        "sha1": "ca6943a0561568610e27599e1e79c9b67628ee27"
+      }
+    },
+    "nimblas": {
+      "version": "0.3.1",
+      "vcsRevision": "93ffdd705496990983eefa0507d52f6a6c533ca7",
+      "url": "https://github.com/andreaferretti/nimblas",
+      "downloadMethod": "git",
+      "dependencies": [],
+      "checksums": {
+        "sha1": "e1ecdea4bb8176f12d66efd4aa0c7b3bea970027"
+      }
+    },
+    "nimlapack": {
+      "version": "0.3.1",
+      "vcsRevision": "231430b3d2156f5cbe8fe16bb8967cd9a93964c5",
+      "url": "https://github.com/andreaferretti/nimlapack",
+      "downloadMethod": "git",
+      "dependencies": [],
+      "checksums": {
+        "sha1": "fcb25795c6fb43f9251b7f34c3ad84c39e645afd"
+      }
+    },
+    "nimcuda": {
+      "version": "0.2.2",
+      "vcsRevision": "319b8deb31812fd9277c6232f0ae3fca31c6d55d",
+      "url": "https://github.com/andreaferretti/nimcuda",
+      "downloadMethod": "git",
+      "dependencies": [],
+      "checksums": {
+        "sha1": "630aaaad24b7f817f6c576bca246141919870cb8"
+      }
+    },
+    "opencl": {
+      "version": "1.0.1",
+      "vcsRevision": "7b138ac19d7f5452a74742392ffadac3d26ee397",
+      "url": "https://github.com/nim-lang/opencl",
+      "downloadMethod": "git",
+      "dependencies": [],
+      "checksums": {
+        "sha1": "89c70044ee474834a4f7dcd6bf05a9082b0886bb"
+      }
+    },
+    "nimcl": {
+      "version": "0.1.3",
+      "vcsRevision": "f2f963ff043a364386888f8a6cf91646cd583e99",
+      "url": "https://github.com/andreaferretti/nimcl",
+      "downloadMethod": "git",
+      "dependencies": [
+        "opencl"
+      ],
+      "checksums": {
+        "sha1": "fb304e3b75503fb359ffe649d019a2fac7e2b3dc"
+      }
+    },
+    "clblast": {
+      "version": "0.0.2",
+      "vcsRevision": "cdadb10dd85b95c9e7248f0b9661ad1e7616efe6",
+      "url": "https://github.com/numforge/nim-clblast",
+      "downloadMethod": "git",
+      "dependencies": [
+        "opencl"
+      ],
+      "checksums": {
+        "sha1": "0b4514b483f83492c49bb0629e5b45ffdf8e7aa3"
+      }
+    },
+    "stb_image": {
+      "version": "2.5",
+      "vcsRevision": "ba5f45286bfa9bed93d8d6b941949cd6218ec888",
+      "url": "https://gitlab.com/define-private-public/stb_image-Nim.git",
+      "downloadMethod": "git",
+      "dependencies": [],
+      "checksums": {
+        "sha1": "abf5fd03e72ee4c316c50a0538b973e355dcb175"
+      }
+    },
+    "zip": {
+      "version": "0.3.1",
+      "vcsRevision": "bdc5783fefc1afb8eb622ff13d464a832ce1d507",
+      "url": "https://github.com/nim-lang/zip",
+      "downloadMethod": "git",
+      "dependencies": [],
+      "checksums": {
+        "sha1": "747aab3c43ecb7b50671cdd0ec3b2edc2c83494c"
+      }
+    },
+    "untar": {
+      "version": "0.1.0",
+      "vcsRevision": "b49f6ac94974fe11cb3d396a8a9c533824a497a7",
+      "url": "https://github.com/dom96/untar",
+      "downloadMethod": "git",
+      "dependencies": [],
+      "checksums": {
+        "sha1": "ceb12634783156ddd511410242dc7855ae2f4a14"
+      }
+    },
+    "arraymancer": {
+      "version": "0.7.32",
+      "vcsRevision": "c95e1c78048a02eda9ac8ad7bb2dd189dbdc1902",
+      "url": "https://github.com/mratsim/Arraymancer",
+      "downloadMethod": "git",
+      "dependencies": [
+        "nimblas",
+        "nimlapack",
+        "nimcuda",
+        "nimcl",
+        "clblast",
+        "stb_image",
+        "zip",
+        "untar"
+      ],
+      "checksums": {
+        "sha1": "e1fa31ad09f0199e93c1bf9959e1f3af5bdacc08"
+      }
+    },
+    "duktape": {
+      "version": "0.1.0",
+      "vcsRevision": "d5e98716b8218c44933fe5b4c57f52c69c7a27ba",
+      "url": "https://github.com/brentp/duktape-nim",
+      "downloadMethod": "git",
+      "dependencies": [],
+      "checksums": {
+        "sha1": "5f93e83b86bf387414d1cd4add490927959be36a"
+      }
+    },
+    "hts": {
+      "version": "0.3.31",
+      "vcsRevision": "93ad65442b16d0191aa0c44803d10a6fb7cde9fa",
+      "url": "https://github.com/brentp/hts-nim",
+      "downloadMethod": "git",
+      "dependencies": [],
+      "checksums": {
+        "sha1": "38ee23c436d9f4c585f8f6d425ac3630460e528a"
+      }
+    },
+    "hile": {
+      "version": "0.01",
+      "vcsRevision": "e89e603a16c7280ce566c51adda28cbd7f2c2a31",
+      "url": "https://github.com/brentp/hileup",
+      "downloadMethod": "git",
+      "dependencies": [
+        "hts"
+      ],
+      "checksums": {
+        "sha1": "b7ead8ae1ebef3d6659804de3247f21e60ef61c2"
+      }
+    },
+    "lapper": {
+      "version": "0.1.8",
+      "vcsRevision": "bdd43a522d2bf1730794e3a68a45673f83a42cfe",
+      "url": "https://github.com/brentp/nim-lapper",
+      "downloadMethod": "git",
+      "dependencies": [],
+      "checksums": {
+        "sha1": "0831c5dae95a2da58f0d8f2896baa3e0f4806f4d"
+      }
+    },
+    "minizip": {
+      "version": "0.0.11",
+      "vcsRevision": "df9cb0b8e7337b578063373fe4de0d3e101a4aa1",
+      "url": "https://github.com/brentp/nim-minizip",
+      "downloadMethod": "git",
+      "dependencies": [],
+      "checksums": {
+        "sha1": "cddb65df455f59547288691ed6729e2ab42a347c"
+      }
+    },
+    "pedfile": {
+      "version": "0.0.4",
+      "vcsRevision": "d6a4a9727c070d7f2322d54a705541bf278a46f4",
+      "url": "https://github.com/brentp/pedfile",
+      "downloadMethod": "git",
+      "dependencies": [],
+      "checksums": {
+        "sha1": "d9a3e1f99f34a25865a3b014d1ad7776f868f63c"
+      }
+    },
+    "slivar": {
+      "version": "0.3.4",
+      "vcsRevision": "a04aa8a39c7f9aa69e5cbac30a19620061635a6f",
+      "url": "https://github.com/brentp/slivar",
+      "downloadMethod": "git",
+      "dependencies": [
+        "hts",
+        "lapper",
+        "duktape",
+        "pedfile",
+        "minizip",
+        "argparse"
+      ],
+      "checksums": {
+        "sha1": "bbfff4976f7adb3e10435e6bcab70bfb3bae687c"
+      }
+    }
+  },
+  "tasks": {}
+}
