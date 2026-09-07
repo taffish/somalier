@@ -1,0 +1,16 @@
+[
+  {"name":"plotly-1.58.5.min.js","url":"https://cdn.plot.ly/plotly-1.58.5.min.js","replaces":"https://cdn.plot.ly/plotly-latest.min.js","sha256":"7085d5a3331da1f63d752ddbfbcae92f46134b3296d46aa6364c5f13b87ff27c","license":"MIT"},
+  {"name":"plotly-2.35.2.min.js","url":"https://cdn.plot.ly/plotly-2.35.2.min.js","sha256":"6d21266ce1bd7d9e5ab4e115989c70c20de0382fd973a8f26ab58619eba4d603","license":"MIT"},
+  {"name":"jquery-3.4.1.min.js","url":"https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js","sha256":"0925e8ad7bd971391a8b1e98be8e87a6971919eb5b60c196485941c3c1df089a","license":"MIT"},
+  {"name":"jquery-3.3.1.min.js","url":"https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js","sha256":"160a426ff2894252cd7cebbdd6d6b7da8fcd319c65b70468f10b6690c45d02ef","license":"MIT"},
+  {"name":"selectize-0.12.6.min.js","url":"https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/js/standalone/selectize.min.js","sha256":"f82d00e4896a9aee107123f1ae51a9699c49d38563b118cabbe1bcda49795099","license":"Apache-2.0"},
+  {"name":"selectize-0.12.6.min.css","url":"https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/css/selectize.bootstrap3.min.css","sha256":"cdefce11819c15b3d19af0a7ad278a6d14ed8c6e2f18b1d780eaacc8b1534638","license":"Apache-2.0"},
+  {"name":"bootstrap-4.3.1.min.css","url":"https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css","sha256":"60b19e5da6a9234ff9220668a5ec1125c157a268513256188ee80f2d2c8d8d36","license":"MIT"},
+  {"name":"bootstrap-4.3.1.bundle.min.js","url":"https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.bundle.min.js","sha256":"7f3145c87d3570154f633975e8a4f8d30aa38603edaba145501e9c90ddbe186c","license":"MIT"},
+  {"name":"LICENSE-plotly-1.58.5","url":"https://raw.githubusercontent.com/plotly/plotly.js/v1.58.5/LICENSE","sha256":"d2fc53bed9f2d5f1f9acc5facc090a61791cc476ff3d7e97ca3286907e9bdedc","kind":"license"},
+  {"name":"LICENSE-plotly-2.35.2","url":"https://raw.githubusercontent.com/plotly/plotly.js/v2.35.2/LICENSE","sha256":"67a26cf80f03ff388f26945dfc1f6caed1a0746ff43871190339b3aee49b94bb","kind":"license"},
+  {"name":"LICENSE-jquery-3.3.1","url":"https://raw.githubusercontent.com/jquery/jquery/3.3.1/LICENSE.txt","sha256":"2b3ed8ba424423a50b023e728530d94bc385cfc7c328ad65a3dfee9c7c0531c5","kind":"license"},
+  {"name":"LICENSE-jquery-3.4.1","url":"https://raw.githubusercontent.com/jquery/jquery/3.4.1/LICENSE.txt","sha256":"1ff603118efdb313799567cb4a408594954384f40843ca6f29c596f5b1f8907d","kind":"license"},
+  {"name":"LICENSE-selectize","url":"https://raw.githubusercontent.com/selectize/selectize.js/v0.12.6/LICENSE","sha256":"f15dc64ea1f373c8af0ee7c020064360497addf335c9c2bcf27c3a6f56a6f0bd","kind":"license"},
+  {"name":"LICENSE-bootstrap","url":"https://raw.githubusercontent.com/twbs/bootstrap/v4.3.1/LICENSE","sha256":"eaf003ef9d4321de625381657eaa69e0093fa6ab00c0201e3fd4847dd9878461","kind":"license"}
+]

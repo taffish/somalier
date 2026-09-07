@@ -1,0 +1,311 @@
+{
+  "schema": "taffish.somalier.nim-notices.v1",
+  "lock_sha256": "941dbe4946dcdd0215ec8e92c4083f8f8af090af73e799de8dc6a0088c0232e2",
+  "packages": {
+    "argparse": {
+      "version": "0.10.1",
+      "commit": "a39ad187bb795132df1150f1276f0d92d1c7d48b",
+      "source": "https://codeload.github.com/iffy/nim-argparse/tar.gz/a39ad187bb795132df1150f1276f0d92d1c7d48b",
+      "source_archive_sha256": "c2cdbb3c7fb2cbfa1cca11c2ad088d0367281293f89d518d543ab41ce554de43",
+      "files": [
+        {
+          "file": "argparse/LICENSE.md",
+          "source_path": "LICENSE.md",
+          "source_text_sha256": "30b19a4ed9995f1bf07891143333c3ba0f536c94dbc3f750c0d95e65fb577c5f",
+          "sha256": "30b19a4ed9995f1bf07891143333c3ba0f536c94dbc3f750c0d95e65fb577c5f",
+          "normalization": "LF and final newline only"
+        }
+      ]
+    },
+    "nimblas": {
+      "version": "0.3.1",
+      "commit": "93ffdd705496990983eefa0507d52f6a6c533ca7",
+      "source": "https://codeload.github.com/andreaferretti/nimblas/tar.gz/93ffdd705496990983eefa0507d52f6a6c533ca7",
+      "source_archive_sha256": "bcacc48301a2151015ee839ec6a45b80625b4313ea97b8c378a47b7b49e29527",
+      "files": [
+        {
+          "file": "nimblas/LICENSE",
+          "source_path": "LICENSE",
+          "source_text_sha256": "0cec06e0e55fbc3dc5cee4fca9b607f66cb8f4e4dbcf3b3c013594dd156732e9",
+          "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594",
+          "normalization": "LF and final newline only"
+        }
+      ]
+    },
+    "nimlapack": {
+      "version": "0.3.1",
+      "commit": "231430b3d2156f5cbe8fe16bb8967cd9a93964c5",
+      "source": "https://codeload.github.com/andreaferretti/nimlapack/tar.gz/231430b3d2156f5cbe8fe16bb8967cd9a93964c5",
+      "source_archive_sha256": "25666d6e06cfd3414276ab075bc96bb03076634392591211afebca3bfed66b88",
+      "files": [
+        {
+          "file": "nimlapack/LICENSE",
+          "source_path": "LICENSE",
+          "source_text_sha256": "b40930bbcf80744c86c46a12bc9da056641d722716c378f5659b9e555ef833e1",
+          "sha256": "b40930bbcf80744c86c46a12bc9da056641d722716c378f5659b9e555ef833e1",
+          "normalization": "LF and final newline only"
+        }
+      ]
+    },
+    "nimcuda": {
+      "version": "0.2.2",
+      "commit": "319b8deb31812fd9277c6232f0ae3fca31c6d55d",
+      "source": "https://codeload.github.com/andreaferretti/nimcuda/tar.gz/319b8deb31812fd9277c6232f0ae3fca31c6d55d",
+      "source_archive_sha256": "593279cfc6db910b61a6746c7e0597ffaee23a5cfb2a2b9721d0a184e855b739",
+      "files": [
+        {
+          "file": "nimcuda/LICENSE",
+          "source_path": "LICENSE",
+          "source_text_sha256": "b40930bbcf80744c86c46a12bc9da056641d722716c378f5659b9e555ef833e1",
+          "sha256": "b40930bbcf80744c86c46a12bc9da056641d722716c378f5659b9e555ef833e1",
+          "normalization": "LF and final newline only"
+        }
+      ]
+    },
+    "opencl": {
+      "version": "1.0.1",
+      "commit": "7b138ac19d7f5452a74742392ffadac3d26ee397",
+      "source": "https://codeload.github.com/nim-lang/opencl/tar.gz/7b138ac19d7f5452a74742392ffadac3d26ee397",
+      "source_archive_sha256": "0fdf2e1908e1aa59fbbde0b6aad18cc625dbca1dc327474b14977bcbf2d10bd5",
+      "files": [
+        {
+          "file": "opencl/LICENSE",
+          "source_path": "LICENSE",
+          "source_text_sha256": "852bcc033a46c62f99fb5ffd43b3241ba2c0c440c6034aa2114505f2c4f03c4a",
+          "sha256": "852bcc033a46c62f99fb5ffd43b3241ba2c0c440c6034aa2114505f2c4f03c4a",
+          "normalization": "LF and final newline only"
+        }
+      ]
+    },
+    "nimcl": {
+      "version": "0.1.3",
+      "commit": "f2f963ff043a364386888f8a6cf91646cd583e99",
+      "source": "https://codeload.github.com/andreaferretti/nimcl/tar.gz/f2f963ff043a364386888f8a6cf91646cd583e99",
+      "source_archive_sha256": "5bcecf149022c07ae86160eed656407758aaef8bfef4adc72daf7479e1b4c961",
+      "files": [
+        {
+          "file": "nimcl/LICENSE",
+          "source_path": "LICENSE",
+          "source_text_sha256": "0cec06e0e55fbc3dc5cee4fca9b607f66cb8f4e4dbcf3b3c013594dd156732e9",
+          "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594",
+          "normalization": "LF and final newline only"
+        }
+      ]
+    },
+    "clblast": {
+      "version": "0.0.2",
+      "commit": "cdadb10dd85b95c9e7248f0b9661ad1e7616efe6",
+      "source": "https://codeload.github.com/numforge/nim-clblast/tar.gz/cdadb10dd85b95c9e7248f0b9661ad1e7616efe6",
+      "source_archive_sha256": "d452bea4bac6b00698be3b08a0d1d9049a71b146caa1238cad52df1202f08034",
+      "files": [
+        {
+          "file": "clblast/LICENSE",
+          "source_path": "LICENSE",
+          "source_text_sha256": "121d5931f59f00ebe97acdb1fca3315ec7e4063144e4d9e67b61ada34be6beb2",
+          "sha256": "121d5931f59f00ebe97acdb1fca3315ec7e4063144e4d9e67b61ada34be6beb2",
+          "normalization": "LF and final newline only"
+        }
+      ]
+    },
+    "stb_image": {
+      "version": "2.5",
+      "commit": "ba5f45286bfa9bed93d8d6b941949cd6218ec888",
+      "source": "https://gitlab.com/define-private-public/stb_image-Nim/-/archive/ba5f45286bfa9bed93d8d6b941949cd6218ec888/stb_image-Nim-ba5f45286bfa9bed93d8d6b941949cd6218ec888.tar.gz",
+      "source_archive_sha256": "54d52e7eefd1b092619e2748be019790f3ed15def0dfc4d4d1f8ee1fd853e3e6",
+      "files": [
+        {
+          "file": "stb_image/LICENSE",
+          "source_path": "LICENSE",
+          "source_text_sha256": "6a90b88421a0d9b090e121daa11b3c6d55eed5eeb3281a2fcc454d6a28b5547c",
+          "sha256": "7e12e5df4bae12cb21581ba157ced20e1986a0508dd10d0e8a4ab9a4cf94e85c",
+          "normalization": "LF and final newline only"
+        },
+        {
+          "file": "stb_image/NOTICE-stb_image.h-0.txt",
+          "source_path": "stb_image/stb_image.h (verbatim comment block)",
+          "source_text_sha256": "7587efcca32db8f95bf5860dea6dfa4be410ee723e1964db3689c8ddf2a2e4a9",
+          "sha256": "7587efcca32db8f95bf5860dea6dfa4be410ee723e1964db3689c8ddf2a2e4a9",
+          "normalization": "LF and final newline only"
+        },
+        {
+          "file": "stb_image/NOTICE-stb_image_write.h-0.txt",
+          "source_path": "stb_image/stb_image_write.h (verbatim comment block)",
+          "source_text_sha256": "e8b3d678bdc9ed127cf8e4c951d1eea6aaaa55f6629c3c3ec4e251fb5243caf1",
+          "sha256": "e8b3d678bdc9ed127cf8e4c951d1eea6aaaa55f6629c3c3ec4e251fb5243caf1",
+          "normalization": "LF and final newline only"
+        }
+      ]
+    },
+    "zip": {
+      "version": "0.3.1",
+      "commit": "bdc5783fefc1afb8eb622ff13d464a832ce1d507",
+      "source": "https://codeload.github.com/nim-lang/zip/tar.gz/bdc5783fefc1afb8eb622ff13d464a832ce1d507",
+      "source_archive_sha256": "ed43a410fa33708e9583d6af79968c448c8b3ffda6b619f0916e8dcc6ee404d8",
+      "files": [
+        {
+          "file": "zip/LICENSE",
+          "source_path": "LICENSE",
+          "source_text_sha256": "8a0e11bad7638aabb6f9dc6b1602633ae5c3ea84a9656a1c20b9812383e71330",
+          "sha256": "4fce048abd8b1136930dc81206750772c242b8b5f1bd949a6056522f5b028cdd",
+          "normalization": "LF and final newline only"
+        }
+      ]
+    },
+    "untar": {
+      "version": "0.1.0",
+      "commit": "b49f6ac94974fe11cb3d396a8a9c533824a497a7",
+      "source": "https://codeload.github.com/dom96/untar/tar.gz/b49f6ac94974fe11cb3d396a8a9c533824a497a7",
+      "source_archive_sha256": "3e6d5759231643f86cf8deb07993aeb00e55d09f87bd6e1676baaeece657308f",
+      "files": [],
+      "boundary": "Locked transitive build dependency; absent from the Somalier compile/link closure. No standalone upstream license file in this pinned archive."
+    },
+    "arraymancer": {
+      "version": "0.7.32",
+      "commit": "c95e1c78048a02eda9ac8ad7bb2dd189dbdc1902",
+      "source": "https://codeload.github.com/mratsim/Arraymancer/tar.gz/c95e1c78048a02eda9ac8ad7bb2dd189dbdc1902",
+      "source_archive_sha256": "bdda39f4d2b4bc78e4d687ccd224cb0374f5ece8c5706c195d57ddeec159b96f",
+      "files": [
+        {
+          "file": "arraymancer/LICENSE",
+          "source_path": "LICENSE",
+          "source_text_sha256": "b5e0e490c842cae5d44a67edffd4441c44599430075fe41e664025ad50970022",
+          "sha256": "b5e0e490c842cae5d44a67edffd4441c44599430075fe41e664025ad50970022",
+          "normalization": "LF and final newline only"
+        }
+      ]
+    },
+    "duktape": {
+      "version": "0.1.0",
+      "commit": "d5e98716b8218c44933fe5b4c57f52c69c7a27ba",
+      "source": "https://codeload.github.com/brentp/duktape-nim/tar.gz/d5e98716b8218c44933fe5b4c57f52c69c7a27ba",
+      "source_archive_sha256": "20027fbc09b5490e517da97883a7b9025047f1dc0015150cd0cd082bee3a344d",
+      "files": [],
+      "boundary": "Locked transitive build dependency; absent from the Somalier compile/link closure. No standalone upstream license file in this pinned archive."
+    },
+    "hts": {
+      "version": "0.3.31",
+      "commit": "93ad65442b16d0191aa0c44803d10a6fb7cde9fa",
+      "source": "https://codeload.github.com/brentp/hts-nim/tar.gz/93ad65442b16d0191aa0c44803d10a6fb7cde9fa",
+      "source_archive_sha256": "b98aaf3ddef4548a61e5d2c11278e2f9baf19619191f9cd7d52503bb0fe9d51e",
+      "files": [
+        {
+          "file": "hts/LICENSE",
+          "source_path": "LICENSE",
+          "source_text_sha256": "9240b28c5be4194461891ff948b4dcf300755c2b0c13614b4d6496b23947e98c",
+          "sha256": "9240b28c5be4194461891ff948b4dcf300755c2b0c13614b4d6496b23947e98c",
+          "normalization": "LF and final newline only"
+        }
+      ]
+    },
+    "hile": {
+      "version": "0.1.0",
+      "commit": "3133320d9660620a4a7f4da5647c85bf2b2738a6",
+      "source": "https://codeload.github.com/brentp/hileup/tar.gz/3133320d9660620a4a7f4da5647c85bf2b2738a6",
+      "source_archive_sha256": "1f63d8e85473f0f0f4a68900df014f6077563ae274d38fa7a3bb877d496aea1a",
+      "files": [
+        {
+          "file": "hile/LICENSE",
+          "source_path": "LICENSE",
+          "source_text_sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+          "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+          "normalization": "LF and final newline only"
+        }
+      ]
+    },
+    "lapper": {
+      "version": "0.1.8",
+      "commit": "bdd43a522d2bf1730794e3a68a45673f83a42cfe",
+      "source": "https://codeload.github.com/brentp/nim-lapper/tar.gz/bdd43a522d2bf1730794e3a68a45673f83a42cfe",
+      "source_archive_sha256": "9a1d1681de066a7a08869ddcbb529f60b51d00659825509d47e9dc0ff183c6f8",
+      "files": [
+        {
+          "file": "lapper/LICENSE",
+          "source_path": "LICENSE",
+          "source_text_sha256": "a3eade2a85e76b8d0ada96d3dfabfb3264352375194612e4d9f4c69549c1d4bb",
+          "sha256": "a3eade2a85e76b8d0ada96d3dfabfb3264352375194612e4d9f4c69549c1d4bb",
+          "normalization": "LF and final newline only"
+        }
+      ]
+    },
+    "minizip": {
+      "version": "0.0.11",
+      "commit": "df9cb0b8e7337b578063373fe4de0d3e101a4aa1",
+      "source": "https://codeload.github.com/brentp/nim-minizip/tar.gz/df9cb0b8e7337b578063373fe4de0d3e101a4aa1",
+      "source_archive_sha256": "61a7942d649cb514af491398f5e79867ef11a809c3d2281b1ea17d5e3014d892",
+      "files": [
+        {
+          "file": "minizip/UPSTREAM-PACKAGE.txt",
+          "source_path": "minizip.nimble",
+          "source_text_sha256": "104fdae0769b682fb144664e352f61cbafbec040d5002eea999da312bf68f661",
+          "sha256": "99ed1702690da4ad81c9e19cac882b72305df0133aaa2ce0cd1f00bdf39292b3",
+          "normalization": "LF and final newline only"
+        },
+        {
+          "file": "minizip/NOTICE-miniz.c-0.txt",
+          "source_path": "minizip/miniz.c (verbatim comment block)",
+          "source_text_sha256": "3d67361c281936632c4d657141982440baf62f79d8a74633c1db8af9edbbdefa",
+          "sha256": "3d67361c281936632c4d657141982440baf62f79d8a74633c1db8af9edbbdefa",
+          "normalization": "LF and final newline only"
+        },
+        {
+          "file": "minizip/NOTICE-miniz.c-1.txt",
+          "source_path": "minizip/miniz.c (verbatim comment block)",
+          "source_text_sha256": "3d67361c281936632c4d657141982440baf62f79d8a74633c1db8af9edbbdefa",
+          "sha256": "3d67361c281936632c4d657141982440baf62f79d8a74633c1db8af9edbbdefa",
+          "normalization": "LF and final newline only"
+        },
+        {
+          "file": "minizip/NOTICE-miniz.c-2.txt",
+          "source_path": "minizip/miniz.c (verbatim comment block)",
+          "source_text_sha256": "3d67361c281936632c4d657141982440baf62f79d8a74633c1db8af9edbbdefa",
+          "sha256": "3d67361c281936632c4d657141982440baf62f79d8a74633c1db8af9edbbdefa",
+          "normalization": "LF and final newline only"
+        },
+        {
+          "file": "minizip/NOTICE-miniz.c-3.txt",
+          "source_path": "minizip/miniz.c (verbatim comment block)",
+          "source_text_sha256": "a36628ca9c3da0bb36456aa8b2eca5af647c63423423943acac3e99ee08f82d7",
+          "sha256": "a36628ca9c3da0bb36456aa8b2eca5af647c63423423943acac3e99ee08f82d7",
+          "normalization": "LF and final newline only"
+        }
+      ]
+    },
+    "pedfile": {
+      "version": "0.0.4",
+      "commit": "d6a4a9727c070d7f2322d54a705541bf278a46f4",
+      "source": "https://codeload.github.com/brentp/pedfile/tar.gz/d6a4a9727c070d7f2322d54a705541bf278a46f4",
+      "source_archive_sha256": "156bb8bb4818576be73a1da4826f996f49fd5eab1ff6c29d42deb123bb58b5dc",
+      "files": [
+        {
+          "file": "pedfile/LICENSE",
+          "source_path": "LICENSE",
+          "source_text_sha256": "3f51434960c3d522156cd8d051e8940f9cfcf3fa88ee50d7cb4555476c290c50",
+          "sha256": "3f51434960c3d522156cd8d051e8940f9cfcf3fa88ee50d7cb4555476c290c50",
+          "normalization": "LF and final newline only"
+        }
+      ]
+    },
+    "slivar": {
+      "version": "0.3.4",
+      "commit": "a04aa8a39c7f9aa69e5cbac30a19620061635a6f",
+      "source": "https://codeload.github.com/brentp/slivar/tar.gz/a04aa8a39c7f9aa69e5cbac30a19620061635a6f",
+      "source_archive_sha256": "f627269949fd40698378ed32475013382c6f24b8779c85f0e9c0ef161ba65e29",
+      "files": [
+        {
+          "file": "slivar/LICENSE",
+          "source_path": "LICENSE",
+          "source_text_sha256": "883c50619d7f63d2b1818807d0a60fd29ae90f55fb77de0125fff8b9792a60e1",
+          "sha256": "883c50619d7f63d2b1818807d0a60fd29ae90f55fb77de0125fff8b9792a60e1",
+          "normalization": "LF and final newline only"
+        },
+        {
+          "file": "slivar/src/slivarpkg/LICENSE-willf-bitset",
+          "source_path": "src/slivarpkg/LICENSE-willf-bitset",
+          "source_text_sha256": "3ef376b769105f14098dd45e9d08ed3568c77d38ad33c470634606048e62119f",
+          "sha256": "3ef376b769105f14098dd45e9d08ed3568c77d38ad33c470634606048e62119f",
+          "normalization": "LF and final newline only"
+        }
+      ]
+    }
+  }
+}

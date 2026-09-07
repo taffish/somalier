@@ -1,0 +1,6 @@
+{
+  "artifact": "taf-somalier-v0.3.4-r1",
+  "schema": "taffish.build/v1",
+  "source_sha256": "377a22fd4b082b5af9181e6476d79f04db21bc2a869ed1e52310fd5b1ead7966",
+  "wrapper_sha256": "6f025fff61589ccb02120f4a4d81686ca8075a46a07d1d80783c8710988efe34"
+}

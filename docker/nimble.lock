@@ -145,15 +145,15 @@
       }
     },
     "hile": {
-      "version": "0.01",
-      "vcsRevision": "e89e603a16c7280ce566c51adda28cbd7f2c2a31",
+      "version": "0.1.0",
+      "vcsRevision": "3133320d9660620a4a7f4da5647c85bf2b2738a6",
       "url": "https://github.com/brentp/hileup",
       "downloadMethod": "git",
       "dependencies": [
         "hts"
       ],
       "checksums": {
-        "sha1": "b7ead8ae1ebef3d6659804de3247f21e60ef61c2"
+        "sha1": "6a0b4203cf7570b44e029aa528b95c0a408e384e"
       }
     },
     "lapper": {

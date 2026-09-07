@@ -1,8 +1,8 @@
 ARG NIM_BUILDER_IMAGE=nimlang/nim:2.2.4@sha256:6918c5619250b7c6f200a98f4602dadaa8d74a4534d29a998b40675a94ada8ab
 ARG RUNTIME_IMAGE=debian:13-slim@sha256:020c0d20b9880058cbe785a9db107156c3c75c2ac944a6aa7ab59f2add76a7bd
-ARG SOMALIER_VERSION=0.3.3
-ARG SOMALIER_COMMIT=210980f31c27546e064c8af253deafed4fb5af43
-ARG SOMALIER_SOURCE_SHA256=bad542343514373f4f3dcf40d814754dba02afda4cbf4bb24a44297c777a2afe
+ARG SOMALIER_VERSION=0.3.4
+ARG SOMALIER_COMMIT=ff58fdade8f4f8293d904f10e0a4a13f1fac808d
+ARG SOMALIER_SOURCE_SHA256=4cc69c3e93c95b8c13d4802e2ad661ab971e4e5520784823a54ee1cb79075a9d
 
 FROM ${NIM_BUILDER_IMAGE} AS builder
 
@@ -20,7 +20,7 @@ RUN set -eux; \
       install -y --no-install-recommends \
         build-essential ca-certificates curl git libbz2-dev \
         libcurl4-gnutls-dev libhts-dev liblzma-dev libopenblas-dev \
-        libssl-dev patch pkg-config samtools tabix zlib1g-dev; do \
+        libssl-dev patch pkg-config python3 samtools tabix zlib1g-dev; do \
       if [ "$attempt" -ge 5 ]; then exit 1; fi; \
       attempt=$((attempt + 1)); \
       sleep 5; \
@@ -33,6 +33,8 @@ WORKDIR /tmp/build
 COPY docker/nimble.lock /tmp/nimble.lock
 COPY docker/remove-unused-zip-dependency.patch /tmp/remove-unused-zip-dependency.patch
 COPY docker/make-testdata.sh /tmp/make-testdata.sh
+COPY docker/report-assets.json /tmp/report-assets.json
+COPY docker/embed-report-assets.py /tmp/embed-report-assets.py
 
 RUN set -eux; \
     curl --retry 5 --retry-delay 2 --retry-all-errors -fsSL \
@@ -55,12 +57,13 @@ RUN set -eux; \
       sleep 5; \
     done; \
     grep -F '"vcsRevision": "a04aa8a39c7f9aa69e5cbac30a19620061635a6f"' nimble.lock >/dev/null; \
-    grep -F '"vcsRevision": "e89e603a16c7280ce566c51adda28cbd7f2c2a31"' nimble.lock >/dev/null; \
+    grep -F '"vcsRevision": "3133320d9660620a4a7f4da5647c85bf2b2738a6"' nimble.lock >/dev/null; \
     grep -F '"vcsRevision": "93ad65442b16d0191aa0c44803d10a6fb7cde9fa"' nimble.lock >/dev/null; \
     paths="$(find /root/.nimble/pkgs2 -mindepth 1 -maxdepth 1 -type d \
       -printf '--path:%p --path:%p/src ')"; \
+    python3 /tmp/embed-report-assets.py /tmp/build/src /tmp/report-assets /tmp/report-assets.json; \
     nim c $paths -d:danger -d:release -o:/tmp/build/somalier src/somalier.nim; \
-    /tmp/build/somalier --help 2>&1 | grep -F 'somalier version: 0.3.3' >/dev/null; \
+    /tmp/build/somalier --help 2>&1 | grep -F 'somalier version: 0.3.4' >/dev/null; \
     /tmp/build/somalier --help 2>&1 | grep -F 'contamination' >/dev/null
 
 RUN set -eux; \
@@ -86,6 +89,10 @@ RUN set -eux; \
       "$install_root/share/doc/somalier/remove-unused-zip-dependency.patch"; \
     install -m 0644 /tmp/make-testdata.sh \
       "$install_root/share/doc/somalier/make-testdata.sh"; \
+    install -m 0644 /tmp/report-assets.json /tmp/embed-report-assets.py \
+      "$install_root/share/doc/somalier/"; \
+    mkdir -p "$install_root/share/licenses/report-assets"; \
+    install -m 0644 /tmp/report-assets/LICENSE-* "$install_root/share/licenses/report-assets/"; \
     /bin/sh /tmp/make-testdata.sh /tmp/build/src "$fixture"; \
     { \
       echo "Somalier ${SOMALIER_VERSION}"; \
@@ -99,6 +106,7 @@ RUN set -eux; \
       echo "dependency_lock_sha256=$(sha256sum src/nimble.lock | awk '{print $1}')"; \
       echo "build_patch_sha256=$(sha256sum /tmp/remove-unused-zip-dependency.patch | awk '{print $1}')"; \
       echo "build_patch=remove unused legacy brentp/zip declaration; no source module imports it"; \
+      echo "html_adaptation=fixed checksum-verified browser libraries embedded in original templates; no analysis algorithm changes"; \
       echo "build=official tagged source; locked Nim dependencies; system HTSlib and OpenBLAS; native linux/amd64 and linux/arm64"; \
     } > "$install_root/share/doc/somalier/source.txt"; \
     chmod -R a+rX "$install_root"; \
@@ -106,6 +114,11 @@ RUN set -eux; \
     test -s "$fixture/test.cram.crai"; \
     test -s "$fixture/ancestry.vcf.gz.tbi"; \
     test -s "$install_root/share/ancestry-labels-1kg.tsv"
+
+COPY docker/licenses/ /opt/somalier/share/licenses/
+COPY docker/collect-nim-notices.py /tmp/collect-nim-notices.py
+RUN python3 /tmp/collect-nim-notices.py /opt/somalier/share/licenses \
+      /root/.cache/nim/somalier_r /tmp/build/src/nimble.lock
 
 FROM ${RUNTIME_IMAGE}
 
@@ -119,10 +132,13 @@ ARG SOMALIER_COMMIT
 ARG SOMALIER_SOURCE_SHA256
 ENV DEBIAN_FRONTEND=noninteractive \
     SOMALIER_HOME=/opt/somalier \
+    PYTHONDONTWRITEBYTECODE=1 \
     PATH=/opt/somalier/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 COPY --from=builder /opt/somalier /opt/somalier
 COPY docker/somalier-smoke.sh /opt/somalier/share/testdata/somalier-smoke.sh
+COPY docker/check-notices.py /opt/somalier/share/testdata/check-notices.py
+COPY docker/somalier-resources.py /usr/local/bin/somalier-resources
 
 RUN set -eux; \
     apt-get -o Acquire::Retries=5 update; \
@@ -130,7 +146,7 @@ RUN set -eux; \
     until apt-get -o Acquire::Retries=5 -o Acquire::http::Pipeline-Depth=0 \
       install -y --no-install-recommends \
         ca-certificates coreutils findutils grep gzip libhts3t64 \
-        libopenblas0-pthread mawk sed; do \
+        libopenblas0-pthread mawk sed curl python3; do \
       if [ "$attempt" -ge 5 ]; then exit 1; fi; \
       attempt=$((attempt + 1)); \
       sleep 5; \
@@ -146,10 +162,11 @@ RUN set -eux; \
       /var/lib/apt/lists/* \
       /var/cache/apt/archives/* \
       /root/.cache \
-      /usr/share/doc/* \
       /usr/share/info/* \
       /usr/share/man/*; \
     chmod 0755 /opt/somalier/share/testdata/somalier-smoke.sh; \
+    chmod 0755 /usr/local/bin/somalier-resources; \
+    find /usr/lib/python3* -type d -name __pycache__ -prune -exec rm -rf '{}' +; \
     ln -s /opt/somalier/bin/somalier /usr/local/bin/somalier; \
     grep -F "upstream_commit=${SOMALIER_COMMIT}" \
       /opt/somalier/share/doc/somalier/source.txt >/dev/null; \

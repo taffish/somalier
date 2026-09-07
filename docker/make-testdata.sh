@@ -102,3 +102,24 @@ samtools index "$out/test.cram"
 rm -f "$out/test.sam" "$out/test.unsorted.bam"
 samtools quickcheck "$out/test.bam" "$out/test.cram"
 test "$(samtools view -c "$out/test.bam")" -eq 10
+
+# 同一合成碱基串的 M 与 =/X 两种编码。第一个 SNP 精确位于 CIGAR 边界，
+# 旧 hileup 会在上一段结束处重复计数；新版本必须输出相同 allele counts。
+alt=$(awk '!/^#/ { print $5; exit }' "$out/test_sites.vcf")
+mutated=$(printf '%s\n' "$sequence" | awk -v a="$alt" '{print substr($0,1,24) a substr($0,26)}')
+for encoding in m eqx; do
+  cigar=50M
+  [ "$encoding" = m ] || cigar=24=1X25=
+  {
+    printf '@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:%s\tLN:%s\n@RG\tID:rg1\tSM:boundary\n' "$chrom" "$length"
+    i=1
+    while [ "$i" -le 10 ]; do
+      printf 'boundary%s\t0\t%s\t%s\t60\t%s\t*\t0\t0\t%s\t%s\tRG:Z:rg1\n' \
+        "$i" "$chrom" "$start" "$cigar" "$mutated" "$qual"
+      i=$((i + 1))
+    done
+  } > "$out/boundary-$encoding.sam"
+  samtools view -b -o "$out/boundary-$encoding.bam" "$out/boundary-$encoding.sam"
+  samtools index "$out/boundary-$encoding.bam"
+  rm "$out/boundary-$encoding.sam"
+done

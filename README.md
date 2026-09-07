@@ -7,290 +7,320 @@ Package identity:
 - name: `somalier`
 - command: `taf-somalier`
 - kind: `tool`
-- version: `0.3.3-r1`
-- license: Apache-2.0
-- upstream: [brentp/somalier](https://github.com/brentp/somalier)
+- version: `0.3.4-r1`
+- license: Apache-2.0 (packaging); MIT (upstream)
 
 ## What This App Packages
 
-Somalier extracts compact genotype sketches from BAM, CRAM, VCF, BCF, or
-GVCF data. Those sketches support fast sample-identity, relatedness, pedigree,
-ancestry, allele-balance, and contamination analyses. This app exposes the
-unmodified upstream `somalier` CLI through a thin TAFFISH wrapper.
+Somalier extracts compact genome sketches for sample identity, relatedness,
+pedigree, ancestry and contamination QC. The CLI remains upstream Somalier.
+The thin TAFFISH entry adds resource binds and ordinary-user output ownership,
+not a second command dispatcher.
 
-The executable is built from the official `v0.3.3` source tag with Nim 2.2.4.
-All Nim dependencies are locked to exact revisions. The final image contains
-HTSlib and OpenBLAS runtime libraries, but not the compiler, package cache, or
-development headers.
+The fixed v0.3.4 source is built with Nim 2.2.4 and a complete dependency lock.
+hileup 0.1.0 includes the upstream CIGAR-boundary counting fix. The narrow
+build-only patch still removes the unused legacy brentp/zip declaration that
+collides with Arraymancer's zip dependency. Separately, HTML templates embed
+checksum-pinned browser assets and license notices; calculations and upstream
+interaction code are unchanged. These adaptations are recorded in the image.
 
 ## Scope
 
-This app supports every public Somalier 0.3.3 command:
+All seven public commands are retained: extract, relate, ancestry, AB_plot,
+contamination, find-sites and pedrel. Source/entry-point/documentation inspection
+found static HTML result viewing, not a desktop/server GUI or optional GUI
+distribution. No noVNC, service, GPU, device, port or daemon is introduced.
+OpenBLAS provides CPU ancestry PCA/training; NimCUDA/OpenCL in the dependency
+graph do not imply a supported Somalier GPU interface.
 
-- `extract`: create one `.somalier` sketch per input sample
-- `relate`: sample QC, pairwise relatedness, pedigree checking, and inference
-- `ancestry`: PCA and neural-network ancestry prediction from labeled sketches
-- `AB_plot`: autosomal allele-balance and depth HTML report
-- `contamination`: CHARR and directional pairwise contamination estimates
-- `find-sites`: derive a sites VCF from a population VCF
-- `pedrel`: report expected pairwise relationships from a PED/FAM file
-
-This app does not bundle a production sites VCF, reference genome, ancestry
-reference sketches, or project data. Those resources are assembly- and
-analysis-specific and remain user supplied.
+Production sites, genome FASTA, 1KG sketches and user data are not in the image.
+The 1KG label map and tiny test fixtures are bundled; neither is a pretrained
+ancestry model. Ancestry remains upstream's experimental feature and trains
+from the labeled sketches supplied for that run.
 
 ## Container Contents
 
-- `somalier`: the upstream 0.3.3 executable
-- `/opt/somalier/share/ancestry-labels-1kg.tsv`: upstream 1000 Genomes labels
-- `/opt/somalier/share/doc/somalier/`: upstream README, change log, citation,
-  dependency lock, source provenance, and the documented build-only patch
-- `/opt/somalier/share/licenses/somalier/LICENSE`: upstream MIT license
-- `/opt/somalier/share/testdata/`: small synthetic and upstream-derived smoke
-  fixtures; these are not production reference data
+- somalier and somalier-resources (explicit resource setup/verification)
+- HTSlib, OpenBLAS, Python standard library and curl for resource setup
+- /opt/somalier/share/ancestry-labels-1kg.tsv
+- /opt/somalier/share/doc/somalier/: provenance, lock, patch and HTML asset pins
+- /opt/somalier/share/licenses/: upstream, locked Nim/runtime and browser component licenses
+- /usr/share/doc/ and /usr/share/common-licenses/: Debian runtime copyright/license notices
+- /opt/somalier/share/testdata/: synthetic/upstream tiny fixtures, not references
+
+The compiler, Nimble download cache and development headers stay in the builder.
+
+## Installation
+
+Install TAFFISH and configure Docker, Podman, or Apptainer (native Linux).
+The wrapper examples below were validated with TAFFISH 0.11.0.
+Once this release is published and accepted into the Hub Index, refresh the
+index and install the exact package version:
+
+```sh
+taf update
+taf install somalier 0.3.4-r1
+taf-somalier-v0.3.4-r1 --version
+taf-somalier-v0.3.4-r1 --help
+```
+
+The versioned wrapper pins this release; `taf-somalier` is the convenient
+unversioned command used below. Installing the app does not install production
+sites, genome FASTA or 1KG sketches; prepare those separately as described in
+Resources, Databases, and Platform. Until Index acceptance, the installation
+command above is not an available Hub release.
 
 ## Usage
 
-Access the upstream command summary:
+Use the explicit executable before Somalier subcommands:
 
 ```sh
 taf-somalier -- --help
-```
-
-Somalier uses subcommands. With TAFFISH command mode, use the explicit
-executable form so `extract`, `relate`, and the other subcommands are not
-interpreted as separate container executables:
-
-```sh
 taf-somalier somalier extract --help
-taf-somalier somalier relate --help
-```
-
-Extract from an indexed BAM or CRAM:
-
-```sh
-taf-somalier somalier extract \
-  --sites sites.hg38.vcf.gz \
-  --fasta GRCh38.fa \
-  --out-dir sketches \
-  sample.bam
-```
-
-Extract all samples from an indexed multi-sample VCF or BCF:
-
-```sh
-taf-somalier somalier extract \
-  --sites sites.hg38.vcf.gz \
-  --fasta GRCh38.fa \
-  --out-dir sketches \
-  cohort.vcf.gz
-```
-
-Calculate relatedness and compare against a pedigree:
-
-```sh
-taf-somalier somalier relate \
-  --sites sites.hg38.vcf.gz \
-  --ped cohort.fam \
-  --output-prefix cohort \
-  sketches/*.somalier
-```
-
-For very large cohorts, place one `.somalier` path per line in a file ending
-in `.list`, then pass that file to `relate`. This path-list support is the main
-upstream change in 0.3.3.
-
-```sh
-taf-somalier somalier relate --output-prefix cohort sketches.list
-```
-
-Estimate contamination:
-
-```sh
-taf-somalier somalier contamination \
-  --sites sites.hg38.vcf.gz \
-  --output cohort-contamination \
-  sketches/*.somalier
-```
-
-For a directed tumor-normal estimate, provide tumor first and normal second:
-
-```sh
-taf-somalier somalier contamination \
-  --sites sites.hg38.vcf.gz \
-  --tumor-normal-pair \
-  tumor.somalier normal.somalier
-```
-
-Create an allele-balance report:
-
-```sh
-taf-somalier somalier AB_plot \
-  --sites sites.hg38.vcf.gz \
-  --output cohort-ab.html \
-  sketches/*.somalier
+taf-somalier somalier extract --sites sites.hg38.vcf.gz --fasta GRCh38.fa \
+  --out-dir sketches sample.bam
+taf-somalier somalier relate --sites sites.hg38.vcf.gz --ped cohort.fam \
+  --output-prefix cohort sketches/*.somalier
+taf-somalier somalier contamination --sites sites.hg38.vcf.gz \
+  --output contamination sketches/*.somalier
+taf-somalier somalier AB_plot --sites sites.hg38.vcf.gz \
+  --output ab.html sketches/*.somalier
 ```
 
 ## Command Mode
 
-`taf-somalier somalier ...` runs the packaged executable explicitly. This is
-the recommended form for upstream subcommands.
+taf-somalier --help/--version are wrapper metadata. Somalier itself reports
+its version in --help, not --version. Bare subcommands can be interpreted as
+container executables; use taf-somalier somalier COMMAND, including after --.
+For many sketches, relate accepts a file ending in .list with one path per line.
+Use explicit sample prefixes to avoid sample-name collisions.
 
-Use `taf-somalier -- --help` when passing an option-leading argument to the
-default command. Automatic command mode also permits packaged shell utilities,
-but no additional bioinformatics CLI is part of this app's public contract.
+TAFFISH 0.11 command mode needs literal inner quotes for a value containing
+spaces, e.g. `--out-dir '"output with spaces"'` or
+`--output-prefix '"report with spaces"'`. Plain shell quotes alone are lost at
+the automatic command layer. Resource bind physical paths still require safe
+no-space names; that restriction does not apply to these quoted analysis paths.
 
 ## Inputs
 
-| Input | Meaning | Notes |
-| --- | --- | --- |
-| BAM/CRAM | Per-sample alignments | Coordinate index, matching FASTA, and FASTA index are required. Prefer this source when possible. |
-| VCF/BCF/GVCF | Variant calls | Indexed compressed VCF/BCF is recommended. Multi-sample inputs create one sketch per sample. |
-| sites VCF | Ordered informative variants | Must match the reference assembly used during extraction. Use the same site ordering across samples. |
-| reference FASTA | Reference sequence | Must match both the input alignments/calls and sites VCF. Keep its `.fai` beside it. |
-| `.somalier` | Compact extracted sketch | Inputs to `relate`, `ancestry`, `AB_plot`, and `contamination`. |
-| PED/FAM or groups file | Expected relationships | Optional for `relate`; required by `pedrel`. |
-| ancestry labels TSV | Sample ID and label | Used with labeled reference sketches by `ancestry`. |
+| Input | Requirement |
+| --- | --- |
+| BAM/CRAM | Coordinate-sorted, indexed; matching local FASTA and .fai |
+| VCF/BCF/GVCF | Indexed compressed calls; AD preferred, GT-only uses pseudo-depths |
+| sites VCF | Same assembly, chromosome naming and ordered sites as the reference/input |
+| .somalier | Consistent ordered sites across compared samples |
+| PED/FAM | Expected pedigree; optional for relate, required for pedrel |
+| labels TSV | Reference sample IDs and ancestry labels |
 
-Somalier uses FORMAT/AD where available. For genotype-only VCFs it derives
-fixed pseudo-depths from GT, which is convenient but less informative than
-alignment extraction or jointly called data.
+Prefer BAM/CRAM or joint calls over single-sample VCF/GVCF when available.
+Prepare FASTA/indexes before read-only analysis; no reference download fallback
+is required when all local inputs are supplied. Custom references and population
+VCFs for find-sites are project inputs, not an app-managed global database.
 
 ## Output Notes
 
-`extract` writes one `<sample>.somalier` binary sketch per sample.
+extract writes SAMPLE.somalier. relate writes PREFIX.samples.tsv,
+PREFIX.pairs.tsv, PREFIX.groups.tsv and PREFIX.html. contamination writes sample
+and pair TSVs. ancestry writes PREFIX.somalier-ancestry.tsv and .html. AB_plot
+writes its requested HTML. Existing names can be overwritten: use a new output
+directory/prefix for each run. Keep input paths/indexes and parent output
+directories visible inside the selected backend.
 
-With `--output-prefix cohort`, `relate` writes:
+For ancestry, OPENBLAS_NUM_THREADS controls CPU BLAS parallelism. Set it inside
+command mode, for example:
+```sh
+taf-somalier env OPENBLAS_NUM_THREADS=1 somalier ancestry --help
+```
+Other upstream environment controls (SOMALIER_SAMPLE_NAME,
+SOMALIER_ALLOWED_FILTERS, SOMALIER_REPORT_ALL_PAIRS, SOMALIER_AB_HOM_CUTOFF,
+SOMALIER_TARGET_AF) likewise belong inside the container command/environment.
 
-- `cohort.samples.tsv`: sample-level pedigree and QC metrics
-- `cohort.pairs.tsv`: pairwise IBS, concordance, and relatedness metrics
-- `cohort.groups.tsv`: related sample groups
-- `cohort.html`: interactive relatedness report
+## Resources, Databases, and Platform
 
-`contamination -o PREFIX` writes `PREFIX.samples.tsv` and
-`PREFIX.pairs.tsv`. `AB_plot` writes one HTML file. `ancestry` writes
-`PREFIX.somalier-ancestry.tsv` and `PREFIX.somalier-ancestry.html`.
-`find-sites` writes a compressed sites VCF.
+### Fixed 1KG ancestry reference
 
-## Sites, References, and Ancestry Data
-
-Somalier production sites files are small external reference resources, not a
-database embedded in this image. Select the file that matches the coordinate
-system and chromosome naming of your FASTA and alignments:
-
-- T2T CHM13v2: <https://github.com/brentp/somalier/files/9954286/sites.chm13v2.T2T.vcf.gz>
-- hg19: <https://github.com/brentp/somalier/files/3412453/sites.hg19.vcf.gz>
-- GRCh37: <https://github.com/brentp/somalier/files/3412455/sites.GRCh37.vcf.gz>
-- hg38 with `chr`: <https://github.com/brentp/somalier/files/3412456/sites.hg38.vcf.gz>
-- hg38 without `chr`: <https://github.com/brentp/somalier/files/3412454/sites.hg38.nochr.vcf.gz>
-- hg38 RNA-focused: <https://github.com/brentp/somalier/files/4566475/sites.hg38.rna.vcf.gz>
-
-Example download:
+The explicit resource ID 1kg-3479773 pins
+[Zenodo 3479773](https://doi.org/10.5281/zenodo.3479773), dataset v0.2.3:
+2,504 sketches, 82,856,769 compressed bytes and 533,870,328 expanded bytes.
+SHA256: b2b7959cfd6d37d1ac7a96e03aeb13707cfe84e5c3a208329220712a935c5a1e.
+The official MD5 is 25c62e15fe71d44fbb525a8648ff3ec2. The record explicitly
+licenses the dataset CC-BY-4.0; credit Brent Pedersen and the dataset DOI.
+It is not licensed under the app's Apache-2.0 or assumed software MIT.
 
 ```sh
-curl -fL \
-  https://github.com/brentp/somalier/files/3412456/sites.hg38.vcf.gz \
-  -o sites.hg38.vcf.gz
+root="$HOME/.local/share/taffish/resources/somalier"
+mkdir -p "$root"
+TAFFISH_CONTAINER_BACKEND=docker TAFFISH_SOMALIER_RESOURCE_INSTALL_ROOT="$root" \
+  taf-somalier somalier-resources install --resource 1kg-3479773 \
+  --resource-root /resource-install --dry-run
+# Remove --dry-run to explicitly download/install.
 ```
 
-Keep resources in a project or shared reference directory visible to TAFFISH;
-Somalier accepts their paths directly, so no fixed container mount point or
-download helper is needed. A sketch records ordered counts, not genomic
-coordinates. Upstream documents that sketches extracted from corresponding
-build-specific sites sets can be compared after extraction, but inputs within
-one extraction run must still match their own assembly exactly.
+Use backend=podman or apptainer for the same installed-wrapper command.
+An administrator may instead create /usr/local/share/taffish/resources/somalier
+(or /opt/taffish/resources/somalier) and run installation once as its owner.
+Ordinary users subsequently need no sudo, network or write access. This is a
+site-local reuse contract, not authorization to redistribute unrelated data.
+All site parent directories must allow ordinary-user traversal (normally 0755);
+the installer does not change permissions of pre-existing host parents.
 
-For `ancestry`, the bundled label file is only a mapping of 1000 Genomes sample
-IDs to labels. It is not an ancestry model and does not include reference
-`.somalier` sketches. Supply labeled reference sketches before `++`, query
-sketches after `++`, and pass a matching `--labels` TSV:
+The TAFFISH resource installer serializes each resource with a private lock, checks free space
+(archive + expanded data + 64 MiB reserve), caches/resumes downloads with finite
+retries, checks exact bytes/SHA256, rejects unsafe tar members, and stages on the
+destination filesystem before atomic promotion. Directories/files become
+0755/0644. resource.json, SHA256SUMS and READY record identity and all members.
+Existing installations are fully verified, never blindly skipped or overwritten.
+There is no in-place --force: use a fresh parent/identity for a successor.
+A corrupt cache or stale lock fails closed with its exact path; inspect ownership
+and remove only that named cache/lock after confirming no active installer.
+Partial downloads remain hidden in .downloads, never as a prepared resource.
+--source can import the exact downloaded archive offline using the same checks.
+
+Select and consume the prepared resource explicitly:
 
 ```sh
-taf-somalier somalier ancestry \
-  --labels ancestry-labels.tsv \
-  --output-prefix cohort \
-  reference-sketches/*.somalier ++ query-sketches/*.somalier
+TAFFISH_SOMALIER_RESOURCE_ID=1kg-3479773 taf-somalier somalier ancestry \
+  --labels /opt/somalier/share/ancestry-labels-1kg.tsv --output-prefix ancestry \
+  '/somalier-resource/1kg-somalier/*.somalier' ++ query-sketches/*.somalier
 ```
 
-See the upstream ancestry guide at
-<https://github.com/brentp/somalier/wiki/ancestry>.
+The upstream guide recommends matching standard GRCh37/hg38 sites. RNA-focused
+sites are not interchangeable. Do not infer suitability for other organisms,
+panels or populations from the reference's availability.
+
+### Sites: authorized local input and sharing
+
+The upstream [release](https://github.com/brentp/somalier/releases/tag/v0.3.4)
+links six fixed sites files. Their attachment pages and VCF headers do not
+state a separate data license; software MIT is not assumed to cover attachments.
+Automatic redistribution/download of those attachments is therefore not added.
+Obtain permission appropriate to your use/sharing, or use your own authorized
+sites produced with find-sites. This is a concrete license boundary, not a
+blanket exemption because assemblies are selectable.
+
+| Member | Official file | SHA256 |
+| --- | --- | --- |
+| hg19 | [265208 bytes](https://github.com/brentp/somalier/files/3412453/sites.hg19.vcf.gz) | 66655f4b1a93d9f474a3dd3d251c11f3d897981fb45f1355538dd807a63ba49a |
+| GRCh37 | [255634 bytes](https://github.com/brentp/somalier/files/3412455/sites.GRCh37.vcf.gz) | 4ca35db90deb4b0e99838c9ef4d48657384b5e0e962476a90e70e039dd38c64d |
+| hg38 chr | [265818 bytes](https://github.com/brentp/somalier/files/3412456/sites.hg38.vcf.gz) | d1a853b8bb2e5f1a520bc67c8303be699543d225d785bce51e8335a2420489b5 |
+| hg38 no chr | [258239 bytes](https://github.com/brentp/somalier/files/3412454/sites.hg38.nochr.vcf.gz) | 297d938350eb3b41c3024b657bd8e96a5d85364251ffa5740f64c5d6baeb1343 |
+| hg38 RNA | [266638 bytes](https://github.com/brentp/somalier/files/4566475/sites.hg38.rna.vcf.gz) | 901cb1c396460a94a69b21f7f20e51fd2d74ed33ee0857343784bc123f4aa0fa |
+| CHM13v2 T2T | [320726 bytes](https://github.com/brentp/somalier/files/9954286/sites.chm13v2.T2T.vcf.gz) | b9d93b878966c9affce67a69274b2ba7965a6328bee7532cd4c9dd8ece32bebc |
+
+Local import requires an explicit local-* identity, source checksum and a
+license/authorization note. The note records your authorization; it grants none:
+
+```sh
+TAFFISH_SOMALIER_RESOURCE_INSTALL_ROOT="$root" taf-somalier somalier-resources \
+  install --resource local-my-sites-v1 --resource-root /resource-install \
+  --source sites.vcf.gz --sha256 YOUR_VERIFIED_SHA256 \
+  --license-note '"Your actual permission and attribution"'
+TAFFISH_SOMALIER_RESOURCE_ID=local-my-sites-v1 taf-somalier somalier extract \
+  --sites /somalier-resource/sites.vcf.gz --fasta reference.fa \
+  --out-dir sketches sample.bam
+```
+
+Uncompressed imported files are named sites.vcf. No helper chooses an assembly
+or silently falls back to another panel. Corresponding genomic sites across
+assemblies may be comparable after extraction, but the RNA set uses different
+coordinates; reference/contig naming must match during extraction.
+
+### Discovery and backend capability matrix
+
+Native platforms remain linux/amd64 and linux/arm64; neither is emulation.
+For a selected RESOURCE_ID, precedence is explicit RESOURCE_PATH, personal
+~/.local/share/taffish/resources/somalier/ID (or TAFFISH_USER_HOME/resources/somalier/ID), /usr/local/share/.../ID, then
+/opt/taffish/resources/somalier/ID. The wrapper checks READY, the receipt schema
+and every listed file checksum, resolves symlinks to the physical root and binds
+it read-only at /somalier-resource. A selected missing/corrupt root fails closed.
+RESOURCE_AUTO_MOUNT=0 disables discovery. Only one selected unit is mounted per
+run; sites extraction and ancestry are separate commands. Explicit upstream
+paths remain supported. Resource physical paths must use letters, digits, _, .,
+/, + or -; use a safe physical directory when backend argument parsing requires it.
+
+All variables above have prefix TAFFISH_SOMALIER_, e.g.
+TAFFISH_SOMALIER_RESOURCE_PATH=/srv/references/somalier/1kg-3479773.
+Set RESOURCE_INSTALL_ROOT only during installation: it binds a writable parent
+to /resource-install and deliberately takes precedence over read-only discovery.
+
+| Capability | Docker | Podman | Apptainer |
+| --- | --- | --- | --- |
+| CLI / static HTML generation | same wrapper commands | same wrapper commands | same wrapper commands |
+| Managed installation/reuse | RESOURCE_INSTALL_ROOT / RESOURCE_ID / RESOURCE_PATH | same | same |
+| Output ownership | calling UID/GID | keep-id and calling UID/GID | calling ordinary user |
+| Manual read-only fallback | TAFFISH_DOCKER_RUN_ARGS="-v /safe/root:/somalier-resource:ro" | TAFFISH_PODMAN_RUN_ARGS="-v /safe/root:/somalier-resource:ro" | TAFFISH_APPTAINER_RUN_ARGS="--bind /safe/root:/somalier-resource:ro" |
+
+Use TAFFISH_CONTAINER_BACKEND=docker, podman or apptainer. For manual fallback,
+set TAFFISH_SOMALIER_RESOURCE_AUTO_MOUNT=0, verify the prepared root separately,
+then invoke the same analysis command. Docker/Podman VM file-sharing must expose
+the physical host path. Apptainer requires native Linux and site permissions.
+Application-required binds/UID args are in main.taf, not repeated global policy.
 
 ## HTML and Network Boundary
 
-All Somalier calculations and HTML generation run without network access. The
-upstream HTML templates reference Plotly, jQuery, Bootstrap, and Selectize from
-public CDNs. Opening `relate`, `ancestry`, or `AB_plot` HTML therefore needs
-browser network access for full interactive rendering unless those assets are
-provided separately. TSV outputs are complete and remain fully offline.
+relate, ancestry and AB_plot emit single-file interactive HTML with inline,
+versioned Plotly, jQuery, Bootstrap and Selectize where needed. Old
+plotly-latest references are fixed to their 1.58.5 release; AB_plot retains
+2.35.2. Browser component notices are embedded and retained in the image.
+No report HTTP service, noVNC port or display is needed: open the generated file
+in your host browser. Citation links require networking only if deliberately
+clicked. Reports contain sample identifiers and scientific metadata; share only
+with authorized readers. TSVs remain independent of the browser.
 
-This app does not rewrite upstream report templates because doing so would
-change the upstream presentation contract.
+## Boundaries and Troubleshooting
 
-## Resources and Platform
-
-Native images are built for `linux/amd64` and `linux/arm64`. The source build
-uses HTSlib for BAM/CRAM/VCF/BCF access and OpenBLAS for ancestry PCA and model
-training. Set `OPENBLAS_NUM_THREADS` when a scheduler must limit BLAS threads.
-
-The upstream Nim package still declares an old `brentp/zip#dev` build
-dependency that no source module imports and that conflicts by package name
-with Arraymancer's `nim-lang/zip`. The documented build-only patch removes
-that unused declaration. It does not change Somalier source code or runtime
-features.
-
-Useful upstream environment variables include:
-
-- `SOMALIER_SAMPLE_NAME`: override a BAM/CRAM sample name
-- `SOMALIER_ALLOWED_FILTERS`: add accepted VCF FILTER values
-- `SOMALIER_REPORT_ALL_PAIRS`: retain all pair rows in large-cohort reports
-- `SOMALIER_AB_HOM_CUTOFF`: adjust the homozygous-reference AB cutoff
-- `SOMALIER_TARGET_AF`: change the target AF used by `find-sites`
-
-## Boundaries
-
-- A sites VCF, FASTA, alignments/calls, and ancestry references must be chosen
-  coherently; the container cannot infer the correct assembly.
-- Single-sample VCF and GVCF extraction is supported, but upstream recommends
-  BAM/CRAM or jointly called VCF/BCF when available.
-- HTML CDN behavior affects browser rendering only, not calculations or TSV
-  generation.
-- The smoke fixtures prove executable paths and output contracts, not
-  production-scale scientific accuracy.
-
-## Troubleshooting
-
-- `unable to open fasta` or CRAM failures usually mean the FASTA, `.fai`,
-  alignment index, or assembly naming is missing or mismatched.
-- Very long argument lists can be replaced by quoted glob patterns or a
-  `.list` file containing one sketch path per line.
-- Empty or unstable ancestry results usually indicate too few labeled samples,
-  inconsistent site ordering, missing labels, or inadequate class diversity.
-- A report that opens without plots usually indicates that its upstream CDN
-  assets are blocked; inspect the TSV outputs or allow the documented CDNs.
+- Wrong FASTA/sites assembly: correct reference and indexes; v0.3.4 reports the
+  mismatch locus. Do not suppress the check to make an extraction pass.
+- Missing 1KG reference: run explicit setup or provide labeled local sketches;
+  ancestry never downloads a model automatically.
+- Missing shared resource: choose the exact prepared RESOURCE_PATH or inspect
+  somalier-resources verify. No silent fallback or resource writes on analysis.
+- Failed download/cache verification: preserve the diagnostic, inspect the named
+  cache file and source; no automatic checksum bypass.
+- Reports overwrite their requested filenames; use fresh prefixes.
+- Ancestry needs sufficient diverse labeled samples and consistent site order.
+  Tiny packaging tests are not accuracy, clinical or population validation.
 
 ## Testing
 
-The smoke suite runs each check in an independent fresh-container context. It
-covers:
-
-- exact 0.3.3 identity, provenance, every public subcommand help, and licenses
-- real extraction from indexed VCF, BAM, and CRAM fixtures
-- `relate` TSV/HTML outputs through the 0.3.3 `.list` input path
-- `AB_plot`, CHARR/pairwise `contamination`, `find-sites`, and `pedrel`
-- synthetic two-class `ancestry`, including OpenBLAS PCA/training and TSV/HTML
-- native amd64 and arm64 builds with lightweight QEMU-safe build-time checks
-
-Tests are offline and deterministic at the file-contract level. They do not
-replace validation on the user's reference build, cohort, pedigree, or
-ancestry panel.
+Native amd64/arm64 Docker and Podman normal/read-only exact smoke, native xjp
+Apptainer exact smoke from the same candidate OCI, and real wrapper/resource
+checks pass: 252 independent smoke probes and 115 wrapper checks were rerun on
+the final notice/diagnostic repair images. Runtime sizes are 196.9 MB (amd64)
+and 197.6 MB (arm64), with no compiler or build cache. Eight injected help
+failures preserve the exact stage, exit status and bounded error log; three
+damaged/missing notice injections fail closed.
+The complete 1KG resource download/import/inventory and three-backend read-only
+verification passed earlier on this same unpublished 0.3.4-r1 candidate before
+the notice/diagnostic repair. The resource helper and its pins are unchanged;
+actual-bind resource mechanism checks passed again on the final images. The
+complete reference was not downloaded again. Population-scale scientific
+accuracy is not asserted.
+The suite covers every public
+help, identity/provenance, indexed BAM/CRAM/VCF extraction, .list relatedness,
+contamination, AB_plot, find-sites, pedrel, synthetic ancestry, the M-versus-=/X
+CIGAR regression, reference mismatch diagnostics, resource import/idempotence/
+corruption rejection and offline HTML dependency closure.
+Shared-resource mechanisms were exercised in private paths; actual installation
+into administrator-owned system directories and multi-user privilege switching
+were not performed.
+Actual browser rendering, interaction and PNG export remain unvalidated: the
+verification tool rejected local HTML navigation under its URL security policy.
+This is a pending manual acceptance gate, not a proven report failure or a
+backend failure. Final exact receipts are recorded in the release notes and
+maintainer evidence; the candidate is not yet publish_ready or published.
 
 ## License and Citation
 
-TAFFISH app packaging: Apache-2.0.
-
-Somalier is MIT licensed. The upstream license and citation metadata are
-retained in the image. Cite:
-
-Pedersen BS, Bhetariya PJ, Brown J, et al. Somalier: rapid relatedness
-estimation for cancer and germline studies using efficient genome sketches.
-Genome Medicine. 2020;12:62. <https://doi.org/10.1186/s13073-020-00761-2>.
+TAFFISH packaging: Apache-2.0. Somalier: MIT; hileup: Apache-2.0 (the pinned
+source LICENSE, correcting the earlier MIT description). Locked Nim dependencies,
+embedded miniz/stb components and Nim runtime notices are retained with source
+identities and checksum inventories under /opt/somalier/share/licenses/.
+Debian runtime copyright notices remain under /usr/share/doc/ with shared
+license texts under /usr/share/common-licenses/; they are not disposable caches.
+The fixed browser
+libraries retain their own licenses (MIT; Selectize Apache-2.0, with bundled
+component notices). Resource permissions are separate, as described above.
+Cite [Pedersen et al., Genome Medicine 2020;12:62](https://doi.org/10.1186/s13073-020-00761-2)
+for Somalier and [Zenodo 3479773](https://doi.org/10.5281/zenodo.3479773) when
+using the 1KG sketches.
