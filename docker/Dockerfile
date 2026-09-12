@@ -1,8 +1,8 @@
 ARG NIM_BUILDER_IMAGE=nimlang/nim:2.2.4@sha256:6918c5619250b7c6f200a98f4602dadaa8d74a4534d29a998b40675a94ada8ab
 ARG RUNTIME_IMAGE=debian:13-slim@sha256:020c0d20b9880058cbe785a9db107156c3c75c2ac944a6aa7ab59f2add76a7bd
-ARG SOMALIER_VERSION=0.3.4
-ARG SOMALIER_COMMIT=ff58fdade8f4f8293d904f10e0a4a13f1fac808d
-ARG SOMALIER_SOURCE_SHA256=4cc69c3e93c95b8c13d4802e2ad661ab971e4e5520784823a54ee1cb79075a9d
+ARG SOMALIER_VERSION=0.3.5
+ARG SOMALIER_COMMIT=3a89a8f4f3ba90b06ee9cf43460ae98e02c6f30c
+ARG SOMALIER_SOURCE_SHA256=506f540589495cdc933b5c9e014f01b16261a567e003bcce60afbcf8de4519a8
 
 FROM ${NIM_BUILDER_IMAGE} AS builder
 
@@ -63,7 +63,7 @@ RUN set -eux; \
       -printf '--path:%p --path:%p/src ')"; \
     python3 /tmp/embed-report-assets.py /tmp/build/src /tmp/report-assets /tmp/report-assets.json; \
     nim c $paths -d:danger -d:release -o:/tmp/build/somalier src/somalier.nim; \
-    /tmp/build/somalier --help 2>&1 | grep -F 'somalier version: 0.3.4' >/dev/null; \
+    /tmp/build/somalier --help 2>&1 | grep -F "somalier version: ${SOMALIER_VERSION}" >/dev/null; \
     /tmp/build/somalier --help 2>&1 | grep -F 'contamination' >/dev/null
 
 RUN set -eux; \
@@ -138,6 +138,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 COPY --from=builder /opt/somalier /opt/somalier
 COPY docker/somalier-smoke.sh /opt/somalier/share/testdata/somalier-smoke.sh
 COPY docker/check-notices.py /opt/somalier/share/testdata/check-notices.py
+COPY docker/test-reference-counts.py /opt/somalier/share/testdata/test-reference-counts.py
 COPY docker/somalier-resources.py /usr/local/bin/somalier-resources
 
 RUN set -eux; \

@@ -65,8 +65,30 @@ def verify(root):
     if actual != expected or any(p.is_symlink() for p in root.rglob("*")):
         raise ValueError("extra/missing member or symlink in resource root")
     identity = receipt["resource"]
-    if identity in CATALOG and receipt["source"]["sha256"] != CATALOG[identity]["sha256"]:
-        raise ValueError("resource receipt does not match the fixed catalog")
+    payloads = [name for name in listed if name != "resource.json"]
+    if len(listed) != len(set(listed)) or receipt.get("members") != len(payloads):
+        raise ValueError("duplicate inventory entry or incorrect member count")
+    source = receipt["source"]
+    if identity in CATALOG:
+        item = CATALOG[identity]
+        if source != item or len(payloads) != item["files"]:
+            raise ValueError("resource receipt does not match the fixed catalog")
+        if any(not name.startswith("1kg-somalier/") or not name.endswith(".somalier") for name in payloads):
+            raise ValueError("unexpected fixed resource member")
+        if sum((root / name).stat().st_size for name in payloads) != item["expanded_bytes"]:
+            raise ValueError("fixed resource size differs from catalog")
+    elif isinstance(identity, str) and re.fullmatch(r"local-[A-Za-z0-9_.-]+", identity):
+        if payloads not in (["sites.vcf"], ["sites.vcf.gz"]):
+            raise ValueError("local resource must contain exactly one sites VCF")
+        path = root / payloads[0]
+        if (source.get("kind") != "sites" or source.get("format") != "file"
+                or source.get("files") != 1 or not source.get("license")
+                or source.get("sha256") != digest(path)
+                or source.get("bytes") != path.stat().st_size
+                or source.get("expanded_bytes") != path.stat().st_size):
+            raise ValueError("local resource source identity differs from payload")
+    else:
+        raise ValueError("unknown resource identity")
     print(f"verified resource={identity} files={len(listed)-1}")
     return receipt
 

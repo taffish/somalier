@@ -1,4 +1,4 @@
-somalier 0.3.4-r1
+somalier 0.3.5-r1
 
 Purpose:
   Genome sketches for sample identity, relatedness and ancestry/contamination QC.
@@ -13,7 +13,7 @@ Common tasks:
     --out-dir sketches sample.bam
   taf-somalier somalier relate --sites sites.vcf.gz --ped cohort.fam \
     --output-prefix cohort sketches/*.somalier
-  taf-somalier somalier relate --output-prefix cohort sketches.list
+  taf-somalier somalier relate --sites sites.vcf.gz --output-prefix cohort sketches.list
   taf-somalier somalier contamination --sites sites.vcf.gz \
     --output contamination sketches/*.somalier
   taf-somalier somalier AB_plot --sites sites.vcf.gz \
@@ -69,6 +69,8 @@ Key outputs:
   Use a fresh output prefix/directory: existing files can be overwritten.
 
 Immediate notes:
+  relate needs matching --sites for correct REF/ALT homozygous counts in TSV/HTML.
+  Without --sites, counts remain alphabetical A/B; INFO/AF is required for CHARR.
   Keep ordered sites consistent; RNA sites are not the standard genomic panel.
   Reference/input indexes must be prepared before read-only analysis.
   Ancestry references precede ++; query sketches follow. Predictions are

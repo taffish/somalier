@@ -30,7 +30,7 @@ identity() {
   stage=identity-main-help
   somalier --help >"$tmp/identity.log" 2>&1
   output=$(cat "$tmp/identity.log")
-  printf '%s\n' "$output" | grep -Fx 'somalier version: 0.3.4' >/dev/null
+  printf '%s\n' "$output" | grep -Fx 'somalier version: 0.3.5' >/dev/null
   for command in extract relate ancestry AB_plot contamination find-sites pedrel; do
     stage="identity-$command-help"
     printf '%s\n' "$output" | grep -F "  $command" >/dev/null
@@ -38,7 +38,7 @@ identity() {
     test -s "$tmp/$command-help.log"
   done
   stage=identity-provenance
-  grep -F 'upstream_commit=ff58fdade8f4f8293d904f10e0a4a13f1fac808d' \
+  grep -F 'upstream_commit=3a89a8f4f3ba90b06ee9cf43460ae98e02c6f30c' \
     /opt/somalier/share/doc/somalier/source.txt >/dev/null
   grep -F 'dependency_lock_sha256=' \
     /opt/somalier/share/doc/somalier/source.txt >/dev/null
@@ -235,6 +235,10 @@ cigar_boundary() {
   echo 'CIGAR-boundary=M-equals-EQX PASS'
 }
 
+reference_counts() {
+  python3 "$data/test-reference-counts.py" "$tmp/reference-counts" >"$tmp/reference-counts.log" 2>&1
+}
+
 run_mode() {
   case "$1" in
     identity) identity ;;
@@ -250,13 +254,14 @@ run_mode() {
     cigar-boundary) cigar_boundary ;;
     resources) resources ;;
     reference-error) reference_error ;;
+    reference-counts) reference_counts ;;
     *) echo "unknown smoke mode: $1" >&2; exit 2 ;;
   esac
 }
 
 if [ "$mode" = all ]; then
   for item in identity extract-vcf extract-bam extract-cram relate ab-plot \
-    contamination find-sites pedrel ancestry cigar-boundary resources reference-error; do
+    contamination find-sites pedrel ancestry cigar-boundary resources reference-error reference-counts; do
     "$0" "$item"
   done
 else

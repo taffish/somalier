@@ -7,7 +7,7 @@ Package identity:
 - name: `somalier`
 - command: `taf-somalier`
 - kind: `tool`
-- version: `0.3.4-r1`
+- version: `0.3.5-r1`
 - license: Apache-2.0 (packaging); MIT (upstream)
 
 ## What This App Packages
@@ -17,8 +17,11 @@ pedigree, ancestry and contamination QC. The CLI remains upstream Somalier.
 The thin TAFFISH entry adds resource binds and ordinary-user output ownership,
 not a second command dispatcher.
 
-The fixed v0.3.4 source is built with Nim 2.2.4 and a complete dependency lock.
-hileup 0.1.0 includes the upstream CIGAR-boundary counting fix. The narrow
+The fixed v0.3.5 source is built with Nim 2.2.4 and a complete dependency lock.
+This release corrects reference/alternate homozygous counts in relate's TSV and
+HTML when matching --sites is supplied, including chromosome X. Stored sketches
+and the internal A/B genotypes are unchanged. hileup 0.1.0 retains the earlier
+upstream CIGAR-boundary counting fix. The narrow
 build-only patch still removes the unused legacy brentp/zip declaration that
 collides with Arraymancer's zip dependency. Separately, HTML templates embed
 checksum-pinned browser assets and license notices; calculations and upstream
@@ -59,9 +62,9 @@ index and install the exact package version:
 
 ```sh
 taf update
-taf install somalier 0.3.4-r1
-taf-somalier-v0.3.4-r1 --version
-taf-somalier-v0.3.4-r1 --help
+taf install somalier 0.3.5-r1
+taf-somalier-v0.3.5-r1 --version
+taf-somalier-v0.3.5-r1 --help
 ```
 
 The versioned wrapper pins this release; `taf-somalier` is the convenient
@@ -94,6 +97,15 @@ its version in --help, not --version. Bare subcommands can be interpreted as
 container executables; use taf-somalier somalier COMMAND, including after --.
 For many sketches, relate accepts a file ending in .list with one path per line.
 Use explicit sample prefixes to avoid sample-name collisions.
+
+Always pass the matching sites VCF to relate, including with a .list input:
+`taf-somalier somalier relate --sites sites.vcf.gz sketches.list`.
+Without --sites the upstream command warns and still reports alphabetical A/B
+counts, not correctly oriented REF/ALT homozygous counts. INFO/AF is required
+for CHARR. The sites must match the sketch's ordered autosomal/X/Y sites; 0.3.5
+rejects different bucket counts, but equal counts alone do not prove identity.
+Existing sketches need not be regenerated solely for this reporting fix;
+rerun relate with their matching sites. Do not mix RNA and genomic panels.
 
 TAFFISH 0.11 command mode needs literal inner quotes for a value containing
 spaces, e.g. `--out-dir '"output with spaces"'` or
@@ -190,7 +202,7 @@ panels or populations from the reference's availability.
 
 ### Sites: authorized local input and sharing
 
-The upstream [release](https://github.com/brentp/somalier/releases/tag/v0.3.4)
+The upstream [release](https://github.com/brentp/somalier/releases/tag/v0.3.5)
 links six fixed sites files. Their attachment pages and VCF headers do not
 state a separate data license; software MIT is not assumed to cover attachments.
 Automatic redistribution/download of those attachments is therefore not added.
@@ -231,8 +243,11 @@ Native platforms remain linux/amd64 and linux/arm64; neither is emulation.
 For a selected RESOURCE_ID, precedence is explicit RESOURCE_PATH, personal
 ~/.local/share/taffish/resources/somalier/ID (or TAFFISH_USER_HOME/resources/somalier/ID), /usr/local/share/.../ID, then
 /opt/taffish/resources/somalier/ID. The wrapper checks READY, the receipt schema
-and every listed file checksum, resolves symlinks to the physical root and binds
-it read-only at /somalier-resource. A selected missing/corrupt root fails closed.
+and every listed file checksum, exact file inventory, absence of member symlinks,
+and the selected ID against the receipt. It resolves root symlinks to the physical
+directory and binds it read-only at /somalier-resource. A selected missing,
+corrupt, extra-member or ID-mismatched root fails closed. The explicit verifier
+also checks member count and fixed-catalog/local-payload source identity.
 RESOURCE_AUTO_MOUNT=0 disables discovery. Only one selected unit is mounted per
 run; sites extraction and ancestry are separate commands. Explicit upstream
 paths remain supported. Resource physical paths must use letters, digits, _, .,
@@ -269,7 +284,7 @@ with authorized readers. TSVs remain independent of the browser.
 
 ## Boundaries and Troubleshooting
 
-- Wrong FASTA/sites assembly: correct reference and indexes; v0.3.4 reports the
+- Wrong FASTA/sites assembly: correct reference and indexes; the runtime reports the
   mismatch locus. Do not suppress the check to make an extraction pass.
 - Missing 1KG reference: run explicit setup or provide labeled local sketches;
   ancestry never downloads a model automatically.
@@ -283,32 +298,44 @@ with authorized readers. TSVs remain independent of the browser.
 
 ## Testing
 
-Native amd64/arm64 Docker and Podman normal/read-only exact smoke, native xjp
-Apptainer exact smoke from the same candidate OCI, and real wrapper/resource
-checks pass: 252 independent smoke probes and 115 wrapper checks were rerun on
-the final notice/diagnostic repair images. Runtime sizes are 196.9 MB (amd64)
-and 197.6 MB (arm64), with no compiler or build cache. Eight injected help
-failures preserve the exact stage, exit status and bounded error log; three
-damaged/missing notice injections fail closed.
-The complete 1KG resource download/import/inventory and three-backend read-only
-verification passed earlier on this same unpublished 0.3.4-r1 candidate before
-the notice/diagnostic repair. The resource helper and its pins are unchanged;
-actual-bind resource mechanism checks passed again on the final images. The
-complete reference was not downloaded again. Population-scale scientific
-accuracy is not asserted.
+Current 0.3.5-r1 validation used native arm64 Docker/Podman and native amd64
+Docker/Podman/Apptainer on the maintainer's xjp server. All 261 exact manifest
+checks passed: 14 existence probes and 15 independent tests in nine groups,
+including Docker/Podman normal and read-only roots and an actual read-only SIF
+generated from the same amd64 OCI. All 140 final-wrapper checks passed across
+the five measured platform/backend combinations. An interrupted local Podman
+client group was preserved and replaced by a complete successful serial rerun.
 The suite covers every public
 help, identity/provenance, indexed BAM/CRAM/VCF extraction, .list relatedness,
 contamination, AB_plot, find-sites, pedrel, synthetic ancestry, the M-versus-=/X
 CIGAR regression, reference mismatch diagnostics, resource import/idempotence/
-corruption rejection and offline HTML dependency closure.
-Shared-resource mechanisms were exercised in private paths; actual installation
-into administrator-owned system directories and multi-user privilege switching
-were not performed.
-Actual browser rendering, interaction and PNG export remain unvalidated: the
-verification tool rejected local HTML navigation under its URL security policy.
-This is a pending manual acceptance gate, not a proven report failure or a
-backend failure. Final exact receipts are recorded in the release notes and
-maintainer evidence; the candidate is not yet publish_ready or published.
+corruption rejection and offline HTML dependency closure. New reference-count
+regression checks TSV and HTML counts, autosomal/X orientation, unchanged pair
+results and sketches, missing-sites warnings and autosomal/X/Y mismatch rejection.
+Only identity/help/notices and tiny VCF extraction run at Docker build time;
+full calculations and browser rendering remain runtime checks.
+Ten offline resource-contract checks and eight injected main/subcommand help
+failures passed. The complete pinned 1KG resource was downloaded and installed
+through the current wrapper; all 2,504 members were verified read-only on all
+three xjp backends, with denied writes and offline idempotence. A second complete
+installation reused the verified cache with networking disabled through the
+actual Apptainer SIF. These prove resource mechanics, not ancestry accuracy.
+All resource tests used private ordinary-user paths; administrator-owned system
+installation and multi-user privilege switching were not performed.
+
+Current images are 196,878,416 bytes (amd64) and 197,640,014 bytes (arm64).
+The approximately 17 MB Somalier payload and required HTSlib/OpenBLAS/Python
+runtime remain; compiler, development headers, Nimble/download caches and
+production resources are absent. Debian copyright/license notices are retained.
+Arm64 Apptainer is not separately validated; native-platform and backend evidence
+axes are both satisfied, without an identified architecture-specific SIF risk.
+
+The current browser tool rejected local HTML navigation under its URL security
+policy; no workaround was attempted. Report generation, inline-asset closure,
+embedded data and TSV/HTML reference-count consistency passed, but actual browser
+rendering, interaction, console/network state and PNG export still require
+maintainer acceptance. This is not an observed report-rendering failure. The
+candidate is not yet ordinary publish_ready and has not been published.
 
 ## License and Citation
 

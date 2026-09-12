@@ -25,7 +25,7 @@ class Diagnostics(unittest.TestCase):
                     '  echo "INJECTED_HELP_FAILURE_$FAIL_PHASE" >&2\n'
                     '  exit "$FAIL_CODE"\n'
                     'fi\n'
-                    "printf '%s\\n' 'somalier version: 0.3.4' " +
+                    "printf '%s\\n' 'somalier version: 0.3.5' " +
                     " ".join(repr("  " + c) for c in COMMANDS) + "\n")
                 fake.chmod(0o700)
                 env = dict(os.environ, PATH=str(root)+os.pathsep+os.environ["PATH"],

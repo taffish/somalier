@@ -1,7 +1,7 @@
 [package]
 name = "somalier"
 kind = "tool"
-version = "0.3.4"
+version = "0.3.5"
 release = 1
 license = "Apache-2.0"
 main = "src/main.taf"
@@ -17,7 +17,7 @@ pipe = true
 command_mode = true
 
 [container]
-image = "ghcr.io/taffish/somalier:0.3.4-r1"
+image = "ghcr.io/taffish/somalier:0.3.5-r1"
 dockerfile = "docker/Dockerfile"
 build_platforms = "linux/amd64,linux/arm64"
 
@@ -25,7 +25,7 @@ build_platforms = "linux/amd64,linux/arm64"
 domain = "bio"
 categories = ["quality-control", "sample-identity", "relatedness", "population-genetics"]
 keywords = ["Somalier", "sample swap", "sample identity", "relatedness", "pedigree", "ancestry", "contamination", "BAM", "CRAM", "VCF", "GVCF"]
-description = "Somalier 0.3.4 runtime for extracting compact genome sketches and checking sample identity, relatedness, ancestry, and contamination."
+description = "Somalier 0.3.5 runtime for extracting compact genome sketches and checking sample identity, relatedness, ancestry, and contamination."
 
 [upstream]
 name = "Somalier"
@@ -33,10 +33,10 @@ type = "github"
 repo = "brentp/somalier"
 homepage = "https://github.com/brentp/somalier"
 manual = "https://github.com/brentp/somalier#usage"
-release_url = "https://github.com/brentp/somalier/releases/tag/v0.3.4"
-downloads = "https://github.com/brentp/somalier/archive/refs/tags/v0.3.4.tar.gz"
-version = "0.3.4"
-commit = "ff58fdade8f4f8293d904f10e0a4a13f1fac808d"
+release_url = "https://github.com/brentp/somalier/releases/tag/v0.3.5"
+downloads = "https://github.com/brentp/somalier/archive/refs/tags/v0.3.5.tar.gz"
+version = "0.3.5"
+commit = "3a89a8f4f3ba90b06ee9cf43460ae98e02c6f30c"
 license = "MIT"
 description = "Rapid sample identity and relatedness estimation from compact sketches extracted from alignments or variant calls."
 citation = "Pedersen BS, Bhetariya PJ, Brown J, et al. Somalier: rapid relatedness estimation for cancer and germline studies using efficient genome sketches. Genome Medicine. 2020;12:62."
@@ -48,4 +48,4 @@ strip_prefix = "v"
 backend = "docker"
 timeout = 600
 exist = ["somalier", "somalier-resources", "python3", "curl", "sh", "awk", "grep", "gzip", "ldd", "mktemp", "sed", "cmp", "sha256sum", "tail"]
-test = ["grep -F 'source_sha256=4cc69c3e93c95b8c13d4802e2ad661ab971e4e5520784823a54ee1cb79075a9d' /opt/somalier/share/doc/somalier/source.txt >/dev/null && grep -F 'upstream_commit=ff58fdade8f4f8293d904f10e0a4a13f1fac808d' /opt/somalier/share/doc/somalier/source.txt >/dev/null", "/opt/somalier/share/testdata/somalier-smoke.sh identity", "/opt/somalier/share/testdata/somalier-smoke.sh extract-vcf", "/opt/somalier/share/testdata/somalier-smoke.sh extract-bam", "/opt/somalier/share/testdata/somalier-smoke.sh extract-cram", "/opt/somalier/share/testdata/somalier-smoke.sh relate", "/opt/somalier/share/testdata/somalier-smoke.sh ab-plot", "/opt/somalier/share/testdata/somalier-smoke.sh contamination", "/opt/somalier/share/testdata/somalier-smoke.sh find-sites", "/opt/somalier/share/testdata/somalier-smoke.sh pedrel", "/opt/somalier/share/testdata/somalier-smoke.sh ancestry", "/opt/somalier/share/testdata/somalier-smoke.sh cigar-boundary", "/opt/somalier/share/testdata/somalier-smoke.sh resources", "/opt/somalier/share/testdata/somalier-smoke.sh reference-error"]
+test = ["grep -F 'source_sha256=506f540589495cdc933b5c9e014f01b16261a567e003bcce60afbcf8de4519a8' /opt/somalier/share/doc/somalier/source.txt >/dev/null && grep -F 'upstream_commit=3a89a8f4f3ba90b06ee9cf43460ae98e02c6f30c' /opt/somalier/share/doc/somalier/source.txt >/dev/null", "/opt/somalier/share/testdata/somalier-smoke.sh identity", "/opt/somalier/share/testdata/somalier-smoke.sh extract-vcf", "/opt/somalier/share/testdata/somalier-smoke.sh extract-bam", "/opt/somalier/share/testdata/somalier-smoke.sh extract-cram", "/opt/somalier/share/testdata/somalier-smoke.sh relate", "/opt/somalier/share/testdata/somalier-smoke.sh ab-plot", "/opt/somalier/share/testdata/somalier-smoke.sh contamination", "/opt/somalier/share/testdata/somalier-smoke.sh find-sites", "/opt/somalier/share/testdata/somalier-smoke.sh pedrel", "/opt/somalier/share/testdata/somalier-smoke.sh ancestry", "/opt/somalier/share/testdata/somalier-smoke.sh cigar-boundary", "/opt/somalier/share/testdata/somalier-smoke.sh resources", "/opt/somalier/share/testdata/somalier-smoke.sh reference-error", "/opt/somalier/share/testdata/somalier-smoke.sh reference-counts"]
