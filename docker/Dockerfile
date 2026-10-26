@@ -1,8 +1,12 @@
+# Source, base images and Nim dependencies are pinned and verified. Debian APT
+# metadata/packages remain rolling: availability and resolved versions may drift.
+# Upstream/CDN retention can invalidate old URLs; checks fail rather than silently
+# accepting replacements. These pins do not promise perpetual rebuildability.
 ARG NIM_BUILDER_IMAGE=nimlang/nim:2.2.4@sha256:6918c5619250b7c6f200a98f4602dadaa8d74a4534d29a998b40675a94ada8ab
 ARG RUNTIME_IMAGE=debian:13-slim@sha256:020c0d20b9880058cbe785a9db107156c3c75c2ac944a6aa7ab59f2add76a7bd
-ARG SOMALIER_VERSION=0.3.5
-ARG SOMALIER_COMMIT=3a89a8f4f3ba90b06ee9cf43460ae98e02c6f30c
-ARG SOMALIER_SOURCE_SHA256=506f540589495cdc933b5c9e014f01b16261a567e003bcce60afbcf8de4519a8
+ARG SOMALIER_VERSION=0.3.6
+ARG SOMALIER_COMMIT=43fdfdffc89cb19d4804f6b8ded448a5770779bf
+ARG SOMALIER_SOURCE_SHA256=7dc3c8764d9dd962221b653353be0e444ac98e53d1c872e47d745674215f2da2
 
 FROM ${NIM_BUILDER_IMAGE} AS builder
 
@@ -140,6 +144,7 @@ COPY docker/somalier-smoke.sh /opt/somalier/share/testdata/somalier-smoke.sh
 COPY docker/check-notices.py /opt/somalier/share/testdata/check-notices.py
 COPY docker/test-reference-counts.py /opt/somalier/share/testdata/test-reference-counts.py
 COPY docker/somalier-resources.py /usr/local/bin/somalier-resources
+COPY src/resource_validation.py /opt/somalier/lib/resource_validation.py
 
 RUN set -eux; \
     apt-get -o Acquire::Retries=5 update; \
@@ -165,6 +170,8 @@ RUN set -eux; \
       /root/.cache \
       /usr/share/info/* \
       /usr/share/man/*; \
+    chmod 0755 /opt /opt/somalier /opt/somalier/lib; \
+    chmod 0644 /opt/somalier/lib/resource_validation.py; \
     chmod 0755 /opt/somalier/share/testdata/somalier-smoke.sh; \
     chmod 0755 /usr/local/bin/somalier-resources; \
     find /usr/lib/python3* -type d -name __pycache__ -prune -exec rm -rf '{}' +; \

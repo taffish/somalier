@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Somalier 显式资源安装：固定下载或用户授权的本地 sites，不在分析时联网。"""
+"""Explicit resource setup; no implicit downloads during analysis."""
 import argparse
 import hashlib
 import json
@@ -12,86 +12,23 @@ import sys
 import tarfile
 import tempfile
 import time
+import signal
+import stat
+import ctypes
 
-SCHEMA = "taffish.somalier.resource.v1"
-CATALOG = {
-    "1kg-3479773": {
-        "url": "https://zenodo.org/api/records/3479773/files/1kg.somalier.tar.gz/content",
-        "sha256": "b2b7959cfd6d37d1ac7a96e03aeb13707cfe84e5c3a208329220712a935c5a1e",
-        "bytes": 82856769, "expanded_bytes": 533870328, "files": 2504,
-        "license": "CC-BY-4.0", "doi": "10.5281/zenodo.3479773",
-        "attribution": "Brent Pedersen, somalier files for thousand genomes high-coverage VCF for 2504 samples, dataset v0.2.3 (2019).",
-        "kind": "ancestry-sketches", "format": "tar.gz",
-    }
-}
+sys.path.insert(0, "/opt/somalier/lib")
+from resource_validation import CATALOG, SCHEMA, digest, safe_relative, verify
 
 
-def digest(path):
-    h = hashlib.sha256()
-    with path.open("rb") as stream:
-        for block in iter(lambda: stream.read(1024 * 1024), b""):
-            h.update(block)
-    return h.hexdigest()
-
-
-def safe_relative(name):
-    path = PurePosixPath(name)
-    if path.is_absolute() or ".." in path.parts or not re.fullmatch(r"[A-Za-z0-9_./+-]+", name):
-        raise ValueError(f"unsafe member name: {name}")
-    return path
-
-
-def verify(root):
-    if not root.is_dir() or root.is_symlink():
-        raise ValueError("resource root must be a physical directory")
-    sums, ready = root / "SHA256SUMS", root / "READY"
-    if not sums.is_file() or not ready.is_file() or digest(sums) != ready.read_text().strip():
-        raise ValueError("missing or damaged READY/SHA256SUMS; use a fresh installation root")
-    listed = []
-    for line in sums.read_text().splitlines():
-        checksum, name = line.split("  ", 1)
-        safe_relative(name)
-        path = root / name
-        if not re.fullmatch(r"[a-f0-9]{64}", checksum) or path.is_symlink() or not path.is_file():
-            raise ValueError(f"invalid inventory member: {name}")
-        if root not in path.resolve().parents or digest(path) != checksum:
-            raise ValueError(f"resource member checksum mismatch: {name}")
-        listed.append(name)
-    receipt = json.loads((root / "resource.json").read_text())
-    if receipt.get("schema") != SCHEMA or "resource.json" not in listed:
-        raise ValueError("unsupported resource receipt")
-    expected = set(listed) | {"READY", "SHA256SUMS"}
-    actual = {str(p.relative_to(root)) for p in root.rglob("*") if p.is_file() or p.is_symlink()}
-    if actual != expected or any(p.is_symlink() for p in root.rglob("*")):
-        raise ValueError("extra/missing member or symlink in resource root")
-    identity = receipt["resource"]
-    payloads = [name for name in listed if name != "resource.json"]
-    if len(listed) != len(set(listed)) or receipt.get("members") != len(payloads):
-        raise ValueError("duplicate inventory entry or incorrect member count")
-    source = receipt["source"]
-    if identity in CATALOG:
-        item = CATALOG[identity]
-        if source != item or len(payloads) != item["files"]:
-            raise ValueError("resource receipt does not match the fixed catalog")
-        if any(not name.startswith("1kg-somalier/") or not name.endswith(".somalier") for name in payloads):
-            raise ValueError("unexpected fixed resource member")
-        if sum((root / name).stat().st_size for name in payloads) != item["expanded_bytes"]:
-            raise ValueError("fixed resource size differs from catalog")
-    elif isinstance(identity, str) and re.fullmatch(r"local-[A-Za-z0-9_.-]+", identity):
-        if payloads not in (["sites.vcf"], ["sites.vcf.gz"]):
-            raise ValueError("local resource must contain exactly one sites VCF")
-        path = root / payloads[0]
-        if (source.get("kind") != "sites" or source.get("format") != "file"
-                or source.get("files") != 1 or not source.get("license")
-                or source.get("sha256") != digest(path)
-                or source.get("bytes") != path.stat().st_size
-                or source.get("expanded_bytes") != path.stat().st_size):
-            raise ValueError("local resource source identity differs from payload")
-    else:
-        raise ValueError("unknown resource identity")
-    print(f"verified resource={identity} files={len(listed)-1}")
-    return receipt
-
+def promote(source, target):
+    # Linux renameat2 refuses even an empty competing directory or dangling link.
+    libc = ctypes.CDLL(None, use_errno=True)
+    rename = libc.renameat2
+    rename.argtypes = [ctypes.c_int, ctypes.c_char_p, ctypes.c_int, ctypes.c_char_p, ctypes.c_uint]
+    rename.restype = ctypes.c_int
+    if rename(-100, os.fsencode(source), -100, os.fsencode(target), 1) != 0:
+        code = ctypes.get_errno()
+        raise OSError(code, os.strerror(code), str(target))
 
 def install(args):
     identity = args.resource
@@ -116,19 +53,24 @@ def install(args):
                           "existing": "full inventory verified; never overwritten"}, indent=2))
         return
     if target.exists() or target.is_symlink():
-        receipt = verify(target)
+        receipt = verify(target, identity)
         if receipt["resource"] != identity or receipt["source"]["sha256"] != item["sha256"]:
             raise ValueError("existing resource identity differs; choose a new immutable ID/root")
         print("already installed; no writes or download")
         return
     root.mkdir(parents=True, exist_ok=True)
     lock = root / f".{identity}.lock"
-    try:
-        lock.mkdir(mode=0o700)
-    except FileExistsError:
-        raise ValueError(f"installation lock exists: {lock}; do not remove until its owner is confirmed inactive") from None
+    owned = None
     stage = None
+    old_mask = signal.pthread_sigmask(signal.SIG_BLOCK, {signal.SIGINT, signal.SIGTERM})
     try:
+        try:
+            lock.mkdir(mode=0o700)
+            owned = (lock.lstat().st_dev, lock.lstat().st_ino)
+        except FileExistsError:
+            raise ValueError(f"installation lock exists: {lock}; inspect its owner before manual recovery") from None
+        finally:
+            signal.pthread_sigmask(signal.SIG_SETMASK, old_mask)
         (lock / "owner.json").write_text(json.dumps({"pid": os.getpid(), "time": time.time()}))
         required = item["bytes"] + item["expanded_bytes"] + 67108864
         if shutil.disk_usage(root).free < required:
@@ -136,7 +78,14 @@ def install(args):
         if source is None:
             cache = root / ".downloads"
             cache.mkdir(mode=0o700, exist_ok=True)
+            cs = cache.lstat()
+            if not stat.S_ISDIR(cs.st_mode) or cs.st_uid != os.getuid() or stat.S_IMODE(cs.st_mode) != 0o700:
+                raise ValueError("download cache must be a private owned 0700 physical directory")
             source = cache / (item["sha256"] + ".part")
+            if source.exists() or source.is_symlink():
+                ss = source.lstat()
+                if not stat.S_ISREG(ss.st_mode) or ss.st_nlink != 1 or ss.st_uid != os.getuid():
+                    raise ValueError("download partial must be an owned regular non-linked file")
             if source.exists() and source.stat().st_size >= item["bytes"]:
                 if source.stat().st_size != item["bytes"] or digest(source) != item["sha256"]:
                     raise ValueError(f"corrupt download cache: {source}; remove only this exact file after inspection")
@@ -147,7 +96,7 @@ def install(args):
                                 "--max-time", "900", "--continue-at", "-", "--output", str(source), item["url"]], check=True)
         if source.stat().st_size != item["bytes"] or digest(source) != item["sha256"]:
             raise ValueError("source bytes/checksum mismatch; nothing promoted; cached download retained for diagnosis")
-        stage = Path(tempfile.mkdtemp(prefix=f".{identity}.stage-", dir=root))
+        stage = Path(tempfile.mkdtemp(prefix=f".{identity}.stage-", dir=lock))
         if item["format"] == "tar.gz":
             with tarfile.open(source, "r:gz") as archive:
                 members = archive.getmembers()
@@ -155,7 +104,7 @@ def install(args):
                 if len(files) != item["files"] or sum(m.size for m in files) != item["expanded_bytes"]:
                     raise ValueError("archive inventory count/size differs from fixed resource")
                 for member in members:
-                    path = safe_relative(member.name)
+                    path = safe_relative(member.name.rstrip("/"))
                     if path.parts[0] != "1kg-somalier" or not (member.isdir() or member.isfile()):
                         raise ValueError("archive contains unexpected path/type")
                     dest = stage / str(path)
@@ -185,17 +134,24 @@ def install(args):
         for path in stage.rglob("*"):
             path.chmod(0o755 if path.is_dir() else 0o644)
         stage.chmod(0o755)
-        verify(stage)
-        if target.exists():
+        verify(stage, identity)
+        if target.exists() or target.is_symlink():
             raise ValueError("target appeared during install; refusing overwrite")
-        stage.rename(target)
+        promote(stage, target)
         stage = None
         print(f"installed resource={identity} root={target}; analysis must bind it read-only")
     finally:
-        if stage is not None:
-            shutil.rmtree(stage)
-        (lock / "owner.json").unlink(missing_ok=True)
-        lock.rmdir()
+        # Only this transaction's inode may be removed. Old staging stays untouched.
+        signal.pthread_sigmask(signal.SIG_BLOCK, {signal.SIGINT, signal.SIGTERM})
+        try:
+            if owned is not None:
+                if (not lock.is_symlink() and lock.is_dir()
+                        and (lock.lstat().st_dev, lock.lstat().st_ino) == owned):
+                    shutil.rmtree(lock)
+                else:
+                    raise ValueError("lock ownership changed; retained all recovery data")
+        finally:
+            signal.pthread_sigmask(signal.SIG_SETMASK, old_mask)
 
 
 def main():
@@ -216,13 +172,18 @@ def main():
     if args.command == "list":
         print(json.dumps(CATALOG, indent=2))
     elif args.command == "verify":
-        verify(Path(args.root).resolve())
+        receipt = verify(Path(args.root))
+        print(f"verified resource={receipt['resource']} files={receipt['members']}")
     else:
         install(args)
 
 
 if __name__ == "__main__":
     try:
+        def interrupted(signum, frame):
+            raise SystemExit(128 + signum)
+        signal.signal(signal.SIGINT, interrupted)
+        signal.signal(signal.SIGTERM, interrupted)
         main()
     except (ValueError, OSError, KeyError, tarfile.TarError, subprocess.CalledProcessError) as exc:
         print(f"somalier-resources: {exc}", file=sys.stderr)

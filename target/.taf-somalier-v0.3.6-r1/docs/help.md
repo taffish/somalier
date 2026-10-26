@@ -1,4 +1,4 @@
-somalier 0.3.5-r1
+somalier 0.3.6-r1
 
 Purpose:
   Genome sketches for sample identity, relatedness and ancestry/contamination QC.
@@ -49,11 +49,11 @@ Use a prepared reference:
     --labels /opt/somalier/share/ancestry-labels-1kg.tsv --output-prefix ancestry \
     '/somalier-resource/1kg-somalier/*.somalier' ++ query-sketches/*.somalier
   Select Docker, Podman or Apptainer using TAFFISH_CONTAINER_BACKEND.
-  Override: TAFFISH_SOMALIER_RESOURCE_PATH=/safe/prepared/root
-  Disable discovery: TAFFISH_SOMALIER_RESOURCE_AUTO_MOUNT=0
+  Override: TAFFISH_SOMALIER_RESOURCE_PATH=/safe/prepared/root (host Python 3 needed)
+  Without host Python 3, use the manual-bind commands below.
   Native amd64/arm64 images; Apptainer requires Linux, not macOS.
 
-Manual resource bind (disable automatic mounting first):
+Manual bind: export TAFFISH_SOMALIER_RESOURCE_AUTO_MOUNT=0; verify before use.
   Docker: TAFFISH_DOCKER_RUN_ARGS="-v /safe/root:/somalier-resource:ro"
   Podman: TAFFISH_PODMAN_RUN_ARGS="-v /safe/root:/somalier-resource:ro"
   Apptainer: TAFFISH_APPTAINER_RUN_ARGS="--bind /safe/root:/somalier-resource:ro"
@@ -75,7 +75,7 @@ Immediate notes:
   Reference/input indexes must be prepared before read-only analysis.
   Ancestry references precede ++; query sketches follow. Predictions are
   experimental, not clinical validation. Protect sample names in HTML/TSVs.
-  To limit ancestry CPU BLAS: taf-somalier env OPENBLAS_NUM_THREADS=1 somalier ...
+  Repeatable pair subset: taf-somalier env SOMALIER_SEED=42 somalier relate ...
   Use "taf-somalier somalier COMMAND", not a bare subcommand.
   Space-containing values need literal inner quotes, e.g.
     --out-dir '"output with spaces"' or --license-note '"Your actual permission"'.

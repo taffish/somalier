@@ -1,0 +1,52 @@
+<shell>
+# Resolve storage only; scientific resource selection remains explicit.
+taf_somalier_mount() {
+    taf_somalier_backend="$1"
+    taf_somalier_root=""
+    taf_somalier_target="/somalier-resource:ro"
+    if test -n "${TAFFISH_SOMALIER_RESOURCE_INSTALL_ROOT:-}"; then
+        taf_somalier_root="$TAFFISH_SOMALIER_RESOURCE_INSTALL_ROOT"
+        taf_somalier_target="/resource-install"
+    else
+        case "${TAFFISH_SOMALIER_RESOURCE_AUTO_MOUNT:-1}" in
+            0) return ;;
+            1) ;;
+            *) printf >&2 'taf-somalier: RESOURCE_AUTO_MOUNT must be 0 or 1\n'
+               printf -- '--taffish-somalier-invalid-resource'; return ;;
+        esac
+        taf_somalier_id="${TAFFISH_SOMALIER_RESOURCE_ID:-}"
+        taf_somalier_root="${TAFFISH_SOMALIER_RESOURCE_PATH:-}"
+        if test -z "$taf_somalier_root" && test -n "$taf_somalier_id"; then
+            case "$taf_somalier_id" in
+                .*|*[!A-Za-z0-9_.-]*) printf -- '--taffish-somalier-invalid-resource'; return ;;
+            esac
+            for taf_somalier_candidate in "${TAFFISH_USER_HOME:-${HOME:-}/.local/share/taffish}/resources/somalier/$taf_somalier_id" "/usr/local/share/taffish/resources/somalier/$taf_somalier_id" "/opt/taffish/resources/somalier/$taf_somalier_id"; do
+                if test -e "$taf_somalier_candidate" || test -L "$taf_somalier_candidate"; then
+                    taf_somalier_root="$taf_somalier_candidate"; break
+                fi
+            done
+        fi
+        if test -z "$taf_somalier_root" && test -z "$taf_somalier_id" && test "${TAFFISH_SOMALIER_RESOURCE_PATH+x}" != x; then return; fi
+        if ! command -v python3 >/dev/null 2>&1; then
+            printf >&2 'taf-somalier: automatic resource validation needs host Python 3; disable discovery and verify inside the container before a manual read-only bind.\n'
+            printf -- '--taffish-somalier-invalid-resource'; return
+        fi
+        if ! python3 -I -B "::*LOADDIR*::/resource_validation.py" "$taf_somalier_root" "$taf_somalier_id"; then
+            printf >&2 'taf-somalier: selected resource missing or corrupt; run somalier-resources verify or choose TAFFISH_SOMALIER_RESOURCE_PATH\n'
+            printf -- '--taffish-somalier-invalid-resource'; return
+        fi
+    fi
+    taf_somalier_root="$(CDPATH= cd "$taf_somalier_root" 2>/dev/null && pwd -P)" || taf_somalier_root=""
+    case "$taf_somalier_root" in
+        ""|*[!A-Za-z0-9_./+-]*)
+            printf >&2 'taf-somalier: use an existing physical bind path with letters, digits, _, ., /, + or -\n'
+            printf -- '--taffish-somalier-invalid-resource'; return ;;
+    esac
+    if test "$taf_somalier_backend" = apptainer; then
+        printf -- '--bind=%s:%s' "$taf_somalier_root" "$taf_somalier_target"
+    else
+        printf -- '--volume=%s:%s' "$taf_somalier_root" "$taf_somalier_target"
+    fi
+}
+<taf-app:container:ghcr.io/taffish/somalier:0.3.6-r1$@[docker/podman: $(taf_somalier_mount docker)][docker: --user=$(id -u):$(id -g)][podman: --userns=keep-id --user=$(id -u):$(id -g)][apptainer: $(taf_somalier_mount apptainer)]>
+somalier ::*ARGV*::

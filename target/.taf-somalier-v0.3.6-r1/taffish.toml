@@ -1,0 +1,51 @@
+[package]
+name = "somalier"
+kind = "tool"
+version = "0.3.6"
+release = 1
+license = "Apache-2.0"
+main = "src/main.taf"
+
+[repository]
+url = "https://github.com/taffish/somalier"
+
+[command]
+name = "taf-somalier"
+
+[runtime]
+pipe = true
+command_mode = true
+
+[container]
+image = "ghcr.io/taffish/somalier:0.3.6-r1"
+dockerfile = "docker/Dockerfile"
+build_platforms = "linux/amd64,linux/arm64"
+
+[meta]
+domain = "bio"
+categories = ["quality-control", "sample-identity", "relatedness", "population-genetics"]
+keywords = ["Somalier", "sample swap", "sample identity", "relatedness", "pedigree", "ancestry", "contamination", "BAM", "CRAM", "VCF", "GVCF"]
+description = "Somalier 0.3.6 runtime for extracting compact genome sketches and checking sample identity, relatedness, ancestry, and contamination."
+
+[upstream]
+name = "Somalier"
+type = "github"
+repo = "brentp/somalier"
+homepage = "https://github.com/brentp/somalier"
+manual = "https://github.com/brentp/somalier#usage"
+release_url = "https://github.com/brentp/somalier/releases/tag/v0.3.6"
+downloads = "https://github.com/brentp/somalier/archive/refs/tags/v0.3.6.tar.gz"
+version = "0.3.6"
+commit = "43fdfdffc89cb19d4804f6b8ded448a5770779bf"
+license = "MIT"
+description = "Rapid sample identity and relatedness estimation from compact sketches extracted from alignments or variant calls."
+citation = "Pedersen BS, Bhetariya PJ, Brown J, et al. Somalier: rapid relatedness estimation for cancer and germline studies using efficient genome sketches. Genome Medicine. 2020;12:62."
+doi = "10.1186/s13073-020-00761-2"
+watch = "tags"
+strip_prefix = "v"
+
+[smoke]
+backend = "docker"
+timeout = 600
+exist = ["somalier", "somalier-resources", "python3", "curl", "sh", "awk", "grep", "gzip", "ldd", "mktemp", "sed", "cmp", "sha256sum", "tail"]
+test = ["grep -F 'source_sha256=7dc3c8764d9dd962221b653353be0e444ac98e53d1c872e47d745674215f2da2' /opt/somalier/share/doc/somalier/source.txt >/dev/null && grep -F 'upstream_commit=43fdfdffc89cb19d4804f6b8ded448a5770779bf' /opt/somalier/share/doc/somalier/source.txt >/dev/null", "/opt/somalier/share/testdata/somalier-smoke.sh identity", "/opt/somalier/share/testdata/somalier-smoke.sh extract-vcf", "/opt/somalier/share/testdata/somalier-smoke.sh extract-bam", "/opt/somalier/share/testdata/somalier-smoke.sh extract-cram", "/opt/somalier/share/testdata/somalier-smoke.sh relate", "/opt/somalier/share/testdata/somalier-smoke.sh ab-plot", "/opt/somalier/share/testdata/somalier-smoke.sh contamination", "/opt/somalier/share/testdata/somalier-smoke.sh find-sites", "/opt/somalier/share/testdata/somalier-smoke.sh pedrel", "/opt/somalier/share/testdata/somalier-smoke.sh ancestry", "/opt/somalier/share/testdata/somalier-smoke.sh cigar-boundary", "/opt/somalier/share/testdata/somalier-smoke.sh resources", "/opt/somalier/share/testdata/somalier-smoke.sh reference-error", "/opt/somalier/share/testdata/somalier-smoke.sh reference-counts", "/opt/somalier/share/testdata/somalier-smoke.sh release-regressions"]

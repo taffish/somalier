@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""构建期把上游 HTML 的外链依赖内联；不修改统计与交互代码。"""
+"""Inline upstream HTML assets without changing statistics or interactions."""
 import hashlib
 import html
 import json
@@ -23,7 +23,8 @@ for item in json.loads(manifest.read_text()):
     if hashlib.sha256(raw).hexdigest() != item["sha256"]:
         raise SystemExit(f"report asset checksum mismatch: {asset.name}")
     text = re.sub(r"(?m)^//# sourceMappingURL=.*$", "", raw.decode())
-    text = re.sub(r"/\*# sourceMappingURL=.*?\*/", "", text)
+    # Match only standalone directives, never text inside JavaScript strings.
+    text = re.sub(r"(?m)^[ \t]*/\*# sourceMappingURL=[^\r\n]*\*/[ \t]*$", "", text)
     if item.get("kind") == "license":
         credit = f'<template data-taffish-license="{asset.name}">{html.escape(text)}</template>'
         content = {p: value.replace("</head>", credit + "\n</head>") for p, value in content.items()}
