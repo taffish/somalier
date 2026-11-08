@@ -20,13 +20,17 @@ taf_somalier_mount() {
             case "$taf_somalier_id" in
                 .*|*[!A-Za-z0-9_.-]*) printf -- '--taffish-somalier-invalid-resource'; return ;;
             esac
-            for taf_somalier_candidate in "${TAFFISH_USER_HOME:-${HOME:-}/.local/share/taffish}/resources/somalier/$taf_somalier_id" "/usr/local/share/taffish/resources/somalier/$taf_somalier_id" "/opt/taffish/resources/somalier/$taf_somalier_id"; do
+            for taf_somalier_candidate in "${TAFFISH_USER_HOME:-${HOME:-}/.local/share/taffish}/resources/somalier/$taf_somalier_id" "${TAFFISH_SYSTEM_HOME:-/usr/local/share/taffish}/resources/somalier/$taf_somalier_id" "/usr/local/share/taffish/resources/somalier/$taf_somalier_id" "/opt/taffish/resources/somalier/$taf_somalier_id"; do
                 if test -e "$taf_somalier_candidate" || test -L "$taf_somalier_candidate"; then
                     taf_somalier_root="$taf_somalier_candidate"; break
                 fi
             done
         fi
         if test -z "$taf_somalier_root" && test -z "$taf_somalier_id" && test "${TAFFISH_SOMALIER_RESOURCE_PATH+x}" != x; then return; fi
+        if test -z "$taf_somalier_root"; then
+            printf >&2 'taf-somalier: selected resource missing or corrupt; check the ID/path\n'
+            printf -- '--taffish-somalier-invalid-resource'; return
+        fi
         if ! command -v python3 >/dev/null 2>&1; then
             printf >&2 'taf-somalier: automatic resource validation needs host Python 3; disable discovery and verify inside the container before a manual read-only bind.\n'
             printf -- '--taffish-somalier-invalid-resource'; return
@@ -48,5 +52,5 @@ taf_somalier_mount() {
         printf -- '--volume=%s:%s' "$taf_somalier_root" "$taf_somalier_target"
     fi
 }
-<taf-app:container:ghcr.io/taffish/somalier:0.3.6-r1$@[docker/podman: $(taf_somalier_mount docker)][docker: --user=$(id -u):$(id -g)][podman: --userns=keep-id --user=$(id -u):$(id -g)][apptainer: $(taf_somalier_mount apptainer)]>
+<taf-app:container:ghcr.io/taffish/somalier:0.3.7-r1$@[docker/podman: $(taf_somalier_mount docker)][docker: --user=$(id -u):$(id -g)][podman: --userns=keep-id --user=$(id -u):$(id -g)][apptainer: $(taf_somalier_mount apptainer)]>
 somalier ::*ARGV*::

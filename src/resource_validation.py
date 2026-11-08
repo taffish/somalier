@@ -1,4 +1,5 @@
 """Shared, read-only validation for host discovery and container installation."""
+import gzip
 import hashlib
 import json
 import os
@@ -18,6 +19,45 @@ CATALOG = {
         "kind": "ancestry-sketches", "format": "tar.gz",
     }
 }
+
+
+# Digest of sorted "<member SHA256>  <path>\n" records in the verified Zenodo tar.
+# Keep it outside receipt v1: existing genuine installed libraries remain valid.
+FIXED_PAYLOAD = {"1kg-3479773": "37679b0bde6b97b88d8e83c805784fb13722f40fb0c2a270103376c7026642e0"}
+
+
+def validate_sites(path):
+    """Check the VCF envelope and at least one actual locus, not biological suitability."""
+    with path.open("rb") as raw:
+        zipped = raw.read(2) == b"\x1f\x8b"
+    if zipped != path.name.endswith(".gz"):
+        raise ValueError("local sites filename and compression disagree")
+    opener = gzip.open if zipped else open
+    header = None
+    rows = 0
+    with opener(path, "rb") as stream:
+        if not re.fullmatch(rb"##fileformat=VCFv4\.\d+", stream.readline().rstrip(b"\r\n")):
+            raise ValueError("local sites must be a VCF or gzip VCF")
+        for raw in stream:
+            line = raw.rstrip(b"\r\n")
+            if header is None and line.startswith(b"##"):
+                continue
+            fields = line.split(b"\t")
+            if header is None:
+                if fields[:8] != b"#CHROM POS ID REF ALT QUAL FILTER INFO".split():
+                    raise ValueError("local sites VCF column header missing or malformed")
+                header = len(fields)
+            elif (len(fields) != header or not fields[0] or fields[0].startswith(b"#")
+                  or not fields[1].isdigit() or not fields[3] or not fields[4]):
+                raise ValueError("malformed local sites VCF record")
+            else:
+                rows += 1
+    if not rows:
+        raise ValueError("local sites VCF has no loci")
+
+
+def walk_error(exc):
+    raise exc
 
 
 def digest(path):
@@ -53,7 +93,7 @@ def verify(root, expected_id=None):
     if not root.is_dir():
         raise ValueError("resource root must resolve to a directory")
     actual, directories = set(), set()
-    for base, dirs, files in os.walk(root, followlinks=False):
+    for base, dirs, files in os.walk(root, followlinks=False, onerror=walk_error):
         for name in dirs + files:
             p = Path(base) / name
             mode = p.lstat().st_mode
@@ -70,7 +110,7 @@ def verify(root, expected_id=None):
     sums = root / "SHA256SUMS"
     if (root / "READY").read_text() != digest(sums) + "\n":
         raise ValueError("damaged READY/SHA256SUMS")
-    listed = []
+    listed = {}
     for line in sums.read_text().splitlines():
         checksum, name = line.split("  ", 1)
         safe_relative(name)
@@ -79,7 +119,7 @@ def verify(root, expected_id=None):
             raise ValueError(f"invalid inventory member: {name}")
         if digest(root / name) != checksum:
             raise ValueError(f"resource member checksum mismatch: {name}")
-        listed.append(name)
+        listed[name] = checksum
     if "resource.json" not in listed or actual != set(listed) | {"READY", "SHA256SUMS"}:
         raise ValueError("extra/missing inventory member")
     expected_dirs = {str(parent) for name in listed for parent in PurePosixPath(name).parents
@@ -87,7 +127,7 @@ def verify(root, expected_id=None):
     if directories != expected_dirs:
         raise ValueError("extra/missing resource directory")
     receipt = strict_json(root / "resource.json")
-    if receipt.get("schema") != SCHEMA:
+    if not isinstance(receipt, dict) or receipt.get("schema") != SCHEMA:
         raise ValueError("unsupported resource receipt")
     identity, source = receipt.get("resource"), receipt.get("source")
     if not isinstance(identity, str) or not isinstance(source, dict):
@@ -105,6 +145,9 @@ def verify(root, expected_id=None):
             raise ValueError("unexpected fixed resource member")
         if sum((root / n).stat().st_size for n in payloads) != item["expanded_bytes"]:
             raise ValueError("fixed resource expanded size differs from catalog")
+        entries = "".join(f"{listed[n]}  {n}\n" for n in sorted(payloads))
+        if hashlib.sha256(entries.encode("ascii")).hexdigest() != FIXED_PAYLOAD[identity]:
+            raise ValueError("installed payload differs from the fixed official archive")
     elif re.fullmatch(r"local-[A-Za-z0-9_.-]+", identity):
         if payloads not in (["sites.vcf"], ["sites.vcf.gz"]):
             raise ValueError("local resource must contain exactly one sites VCF")
@@ -117,6 +160,7 @@ def verify(root, expected_id=None):
                 or type(source.get("expanded_bytes")) is not int or source["expanded_bytes"] != path.stat().st_size
                 or source.get("url") != "user-authorized-local-file"):
             raise ValueError("local resource source identity differs from payload")
+        validate_sites(path)
     else:
         raise ValueError("unknown resource identity")
     return receipt
@@ -125,6 +169,6 @@ def verify(root, expected_id=None):
 if __name__ == "__main__":
     try:
         verify(sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else None)
-    except (ValueError, OSError, KeyError, TypeError) as exc:
+    except (ValueError, OSError, EOFError, KeyError, TypeError) as exc:
         print(f"somalier-resources: {exc}", file=sys.stderr)
         sys.exit(1)

@@ -30,7 +30,7 @@ identity() {
   stage=identity-main-help
   somalier --help >"$tmp/identity.log" 2>&1
   output=$(cat "$tmp/identity.log")
-  printf '%s\n' "$output" | grep -Fx 'somalier version: 0.3.6' >/dev/null
+  printf '%s\n' "$output" | grep -Fx 'somalier version: 0.3.7' >/dev/null
   for command in extract relate ancestry AB_plot contamination find-sites pedrel; do
     stage="identity-$command-help"
     printf '%s\n' "$output" | grep -F "  $command" >/dev/null
@@ -38,7 +38,7 @@ identity() {
     test -s "$tmp/$command-help.log"
   done
   stage=identity-provenance
-  grep -F 'upstream_commit=43fdfdffc89cb19d4804f6b8ded448a5770779bf' \
+  grep -F 'upstream_commit=c9422c0d6bdb5781841d0f940a599db94e2915f5' \
     /opt/somalier/share/doc/somalier/source.txt >/dev/null
   grep -F 'dependency_lock_sha256=' \
     /opt/somalier/share/doc/somalier/source.txt >/dev/null
@@ -135,6 +135,7 @@ contamination() {
 }
 
 find_sites() {
+  python3 "$data/test-find-sites.py" "$tmp/field-regression" >"$tmp/field-regression.log" 2>&1
   somalier find-sites --min-AN 1 --min-AF 0.1 --snp-dist 1 \
     --output-vcf "$tmp/sites.vcf.gz" "$data/population.vcf" \
     >"$tmp/find-sites.log" 2>&1

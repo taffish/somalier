@@ -1,0 +1,5 @@
+*
+!docker/
+!docker/**
+!src/
+!src/resource_validation.py

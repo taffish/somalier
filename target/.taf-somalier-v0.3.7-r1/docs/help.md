@@ -1,8 +1,7 @@
-somalier 0.3.6-r1
+somalier 0.3.7-r1
 
 Purpose:
   Genome sketches for sample identity, relatedness and ancestry/contamination QC.
-  CLI calculations produce TSVs and offline HTML viewed in your host browser.
 
 Usage:
   taf-somalier -- --help
@@ -13,7 +12,6 @@ Common tasks:
     --out-dir sketches sample.bam
   taf-somalier somalier relate --sites sites.vcf.gz --ped cohort.fam \
     --output-prefix cohort sketches/*.somalier
-  taf-somalier somalier relate --sites sites.vcf.gz --output-prefix cohort sketches.list
   taf-somalier somalier contamination --sites sites.vcf.gz \
     --output contamination sketches/*.somalier
   taf-somalier somalier AB_plot --sites sites.vcf.gz \
@@ -21,10 +19,11 @@ Common tasks:
 
 Required inputs:
   Indexed BAM/CRAM or compressed VCF/BCF; matching FASTA + .fai and ordered sites.
-  Prefer BAM/CRAM or joint calls over single-sample VCF/GVCF.
-  No production references are bundled. Choose assembly/chr naming explicitly.
-  Obtain authorized sites yourself; official links/checksums are in the README.
-  find-sites selects sites from your population VCF; pedrel accepts PED/FAM.
+  Supply authorized sites matching your assembly and chr naming; see the README.
+    taf-somalier somalier find-sites --AN-field COHORT_AN --AF-field COHORT_AF \
+      --output-vcf selected.vcf.gz population.vcf.gz
+  Output site records use standard INFO/AN and INFO/AF. Set --min-AN and
+  --min-AF for your population; pedrel takes a PED/FAM file.
 
 Shared ancestry setup (explicit download, about 0.7 GB free space):
   root="$HOME/.local/share/taffish/resources/somalier"
@@ -41,17 +40,16 @@ Shared ancestry setup (explicit download, about 0.7 GB free space):
       --resource 1kg-3479773 --resource-root /resource-install
   unset TAFFISH_SOMALIER_RESOURCE_INSTALL_ROOT
   Add --dry-run to preview. Administrators can install once in the same
-  /usr/local/share/taffish/resources/somalier parent; users reuse read-only.
+  /usr/local/share/taffish/resources/somalier parent (or the resources/somalier
+  directory under TAFFISH_SYSTEM_HOME); users select the ID read-only.
 
 Use a prepared reference:
   export TAFFISH_SOMALIER_RESOURCE_ID=1kg-3479773
   taf-somalier somalier ancestry \
     --labels /opt/somalier/share/ancestry-labels-1kg.tsv --output-prefix ancestry \
     '/somalier-resource/1kg-somalier/*.somalier' ++ query-sketches/*.somalier
-  Select Docker, Podman or Apptainer using TAFFISH_CONTAINER_BACKEND.
   Override: TAFFISH_SOMALIER_RESOURCE_PATH=/safe/prepared/root (host Python 3 needed)
   Without host Python 3, use the manual-bind commands below.
-  Native amd64/arm64 images; Apptainer requires Linux, not macOS.
 
 Manual bind: export TAFFISH_SOMALIER_RESOURCE_AUTO_MOUNT=0; verify before use.
   Docker: TAFFISH_DOCKER_RUN_ARGS="-v /safe/root:/somalier-resource:ro"
@@ -59,6 +57,7 @@ Manual bind: export TAFFISH_SOMALIER_RESOURCE_AUTO_MOUNT=0; verify before use.
   Apptainer: TAFFISH_APPTAINER_RUN_ARGS="--bind /safe/root:/somalier-resource:ro"
   Export the appropriate variable, then run the same wrapper command.
   Physical resource paths must use letters, digits, _, ., /, + or -.
+  Invalid library? Check the selected ID/path; do not overwrite it.
   Local sites import: taf-somalier somalier-resources install --help
   Verify: taf-somalier somalier-resources verify /somalier-resource
 
@@ -72,11 +71,9 @@ Immediate notes:
   relate needs matching --sites for correct REF/ALT homozygous counts in TSV/HTML.
   Without --sites, counts remain alphabetical A/B; INFO/AF is required for CHARR.
   Keep ordered sites consistent; RNA sites are not the standard genomic panel.
-  Reference/input indexes must be prepared before read-only analysis.
   Ancestry references precede ++; query sketches follow. Predictions are
   experimental, not clinical validation. Protect sample names in HTML/TSVs.
   Repeatable pair subset: taf-somalier env SOMALIER_SEED=42 somalier relate ...
-  Use "taf-somalier somalier COMMAND", not a bare subcommand.
   Space-containing values need literal inner quotes, e.g.
     --out-dir '"output with spaces"' or --license-note '"Your actual permission"'.
 

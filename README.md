@@ -7,7 +7,7 @@ Package identity:
 - name: `somalier`
 - command: `taf-somalier`
 - kind: `tool`
-- version: `0.3.6-r1`
+- version: `0.3.7-r1`
 - license: Apache-2.0 (packaging); MIT (upstream)
 
 ## What This App Packages
@@ -17,15 +17,19 @@ pedigree, ancestry and contamination QC. The CLI remains upstream Somalier.
 The thin TAFFISH entry adds resource binds and ordinary-user output ownership,
 not a second command dispatcher.
 
-The fixed v0.3.6 source is built with Nim 2.2.4 and a complete dependency lock.
-This release fixes the contamination likelihood refinement, adds SOMALIER_SEED
-for repeatable pair subsampling, rejects unmatched sketch patterns and corrects
-unknown-as-reference imputation at flipped sites. Existing sketches remain
-compatible. hileup 0.1.0 retains the CIGAR-boundary fix. The narrow
+The fixed v0.3.7 source is built with Nim 2.2.4 and a complete dependency lock.
+This release fixes `find-sites` for population VCFs with nonstandard INFO
+field names. For example, `--AN-field COHORT_AN --AF-field COHORT_AF` writes
+those values into standard INFO/AN and INFO/AF; other per-record INFO fields
+are discarded. Existing sketches do not need conversion. hileup 0.1.0 retains the CIGAR-boundary fix. The narrow
 build-only patch still removes the unused legacy brentp/zip declaration that
 collides with Arraymancer's zip dependency. Separately, HTML templates embed
 checksum-pinned browser assets and license notices; calculations and upstream
 interaction code are unchanged. These adaptations are recorded in the image.
+A separate narrow presentation patch escapes HTML delimiter characters in
+JSON written into original reports. Labels such as `</script>` remain data;
+JSON round-tripping preserves their text. This fixes a reproduced upstream
+script-boundary injection without changing scientific calculations or output TSVs.
 The asset embedder preserves source-map-looking text inside JavaScript strings;
 only standalone source-map directives are stripped. This fixes the inherited
 AB_plot blank-page failure without replacing the upstream report implementation.
@@ -65,9 +69,9 @@ index and install the exact package version:
 
 ```sh
 taf update
-taf install somalier 0.3.6-r1
-taf-somalier-v0.3.6-r1 --version
-taf-somalier-v0.3.6-r1 --help
+taf install somalier 0.3.7-r1
+taf-somalier-v0.3.7-r1 --version
+taf-somalier-v0.3.7-r1 --help
 ```
 
 The versioned wrapper pins this release; `taf-somalier` is the convenient
@@ -209,7 +213,7 @@ panels or populations from the reference's availability.
 
 ### Sites: authorized local input and sharing
 
-The upstream [release](https://github.com/brentp/somalier/releases/tag/v0.3.6)
+The upstream [release](https://github.com/brentp/somalier/releases/tag/v0.3.7)
 links six fixed sites files. Their attachment pages and VCF headers do not
 state a separate data license; software MIT is not assumed to cover attachments.
 Automatic redistribution/download of those attachments is therefore not added.
@@ -248,13 +252,17 @@ coordinates; reference/contig naming must match during extraction.
 
 Native platforms remain linux/amd64 and linux/arm64; neither is emulation.
 For a selected RESOURCE_ID, precedence is explicit RESOURCE_PATH, personal
-~/.local/share/taffish/resources/somalier/ID (or TAFFISH_USER_HOME/resources/somalier/ID), /usr/local/share/.../ID, then
+~/.local/share/taffish/resources/somalier/ID (or TAFFISH_USER_HOME/resources/somalier/ID), TAFFISH_SYSTEM_HOME/resources/somalier/ID
+when configured, /usr/local/share/taffish/resources/somalier/ID, then
 /opt/taffish/resources/somalier/ID. The wrapper checks READY, the receipt schema
 and every listed file checksum, exact file inventory, absence of member symlinks,
 and the selected ID against the receipt. It resolves root symlinks to the physical
 directory and binds it read-only at /somalier-resource. A selected missing,
 corrupt, extra-member or ID-mismatched root fails closed. The host and container use the same frozen validator, including member count,
-fixed-catalog/local-payload identity and directory inventory. Automatic validation
+fixed-catalog/local-payload identity and directory inventory. For 1KG the exact
+2,504 names and hashes must match the pinned archive, even if an installed
+inventory was rewritten. Authorized local panels must contain a readable
+VCF 4.x header and actual loci; this does not verify assembly or scientific fit. Automatic validation
 requires host Python 3 (standard library only, isolated mode); without it, disable
 discovery, verify the root using the container helper and use the manual bind below.
 Broken high-priority root links fail closed rather than falling through.
@@ -308,45 +316,23 @@ with authorized readers. TSVs remain independent of the browser.
 
 ## Testing
 
-The 0.3.6-r1 native source builds and runtime checks passed on 2026-10-23.
-Manual publication and subsequent GitHub Action/GHCR/Index acceptance remain
-separate steps; these results do not claim the candidate is already published.
+The build installs the official source and checks provenance, files and notices.
+CLI, permission, resource and HTML behavior are tested on the final native
+images, not used as fragile build-time gates. Packaging tests use small
+synthetic or upstream example inputs; they do not validate biological accuracy.
+The 0.3.7-r1 candidate was built natively and tested on 2026-11-05. The
+uncompressed image is 197,085,503 bytes (amd64) and 197,850,192 bytes (arm64).
+Docker and Podman passed on both; the same amd64 image also passed as a
+read-only Apptainer SIF on xjp. Five real-wrapper runs exercised all three
+reports and the custom INFO regression; direct opening of the original report
+files was also checked. Resource checks covered a real HTTPS resume, offline
+installation/reuse of the identical archive, tampered payloads with rewritten
+inventories, signal recovery and preservation of existing data. Site discovery
+was exercised in an isolated test root, not a production administrator install.
+The reference database is not part of either image.
 
-| Native platform | Docker | Podman | Apptainer |
-| --- | --- | --- | --- |
-| linux/amd64 (xjp) | PASS | PASS | PASS, read-only SIF from the same OCI image |
-| linux/arm64 (local) | PASS | PASS | Not separately validated |
-
-Across these five combinations, 403 fresh offline exact checks, 140 real-wrapper
-calls, 355 resource negative/interruption/recovery/idempotence calls and five
-ordinary-user/read-only permission controls passed. Docker/Podman exact checks
-include normal, read-only and nonzero-UID modes. An additional 84 xjp wrapper
-calls verified the final help snapshot. Resource tests preserve old data and
-foreign staging/symlink targets; invalid receipts, payloads and inventories fail
-closed. Another 15 xjp wrapper calls cover space preflight, zero-byte partial
-recovery, actual fixed-archive download, offline installation, verification and
-idempotence of the 2,504-sketch 1KG reference. Only Docker downloaded that archive;
-Podman/Apptainer reused the identical verified archive offline. This is resource
-transport validation, not sample or reference accuracy validation.
-
-All 22 upstream contamination/reference-count tests passed in a separate amd64
-builder test. The three original HTML report types were produced by real wrappers;
-their inline scripts parse, and maintainer browser checks passed for charts,
-selection, hover/zoom, PNG export and narrow windows. The initial AB_plot blank
-page is retained as failure evidence; only the repaired final outputs passed.
-
-Final uncompressed image sizes are 197,072,389 bytes (amd64) and 197,837,939 bytes
-(arm64), with image configs 5152b2a733bc and 43659c063365 respectively.
-Compiler objects, dependency caches and development headers are not retained in
-the runtime image; runtime and browser license notices are retained.
-ARM64 Apptainer and a real administrator-owned system-wide installation were
-not separately executed. No production/clinical accuracy claim is made.
-
-Only identity/help/notices and tiny VCF extraction run at Docker build time.
-Full regression calculations and browser rendering remain runtime checks.
-Pinned source/base/dependencies protect identity, not permanent hosting.
-Debian APT versions and remote retention can drift; checksum failures are not
-silently ignored or substituted.
+Base images and the source, Nim dependencies and report assets are pinned.
+Debian package availability may change; do not substitute unverified inputs.
 
 ## License and Citation
 

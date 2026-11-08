@@ -1,0 +1,25 @@
+--- a/src/somalierpkg/abplot.nim
++++ b/src/somalierpkg/abplot.nim
+@@ -195,1 +195,1 @@
+-  var html = tmpl_html.replace("<INPUT_TRACES>", $(%traces))
++  var html = tmpl_html.replace("<INPUT_TRACES>", ($( %traces )).replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026"))
+@@ -196,1 +196,1 @@
+-  html = html.replace("<INPUT_XAXIS>", $chromTicks)
++  html = html.replace("<INPUT_XAXIS>", ($chromTicks).replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026"))
+--- a/src/somalierpkg/ancestry.nim
++++ b/src/somalierpkg/ancestry.nim
+@@ -320,1 +320,1 @@
+-  fh_html.write_line(%* lhtmls)
++  fh_html.write_line(($( %* lhtmls )).replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026"))
+@@ -323,1 +323,1 @@
+-  fh_html.write_line(%* qhtmls)
++  fh_html.write_line(($( %* qhtmls )).replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026"))
+--- a/src/somalierpkg/relate.nim
++++ b/src/somalierpkg/relate.nim
+@@ -1032,1 +1032,2 @@
+-  result.add("]")
++  result.add("]")
++  result = result.replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
+@@ -1284,1 +1284,1 @@
+-  fh_html.write( %* rels)
++  fh_html.write(($( %* rels )).replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026"))
